@@ -2,15 +2,15 @@
 ===============================================================================
 Question ID: Q005
 Category: 01_Basic / 01_Basic_Easy
-Topic: NULL Handling (IS NULL) and Boolean Precedence (AND / OR with Parentheses)
+Topic: NULL Handling (IS NULL) & Logical Operator Precedence (AND over OR)
 Difficulty: Easy
 SQL Standard: ANSI SQL Compatible
 ===============================================================================
 
 PROBLEM STATEMENT:
-The HR payroll team requires a list of active sales executives (is_active = TRUE) 
-earning a base monthly salary >= 50000, who have either missing commission details 
-(commission_pct IS NULL) OR missing reporting manager assignment (manager_id IS NULL). 
+The HR payroll audit team requires a list of active sales representatives 
+(is_active = TRUE) with a base salary of at least 50,000 who have missing 
+information in either their commission percentage or their reporting manager ID. 
 Display rep ID, rep name, salary, commission percentage, and manager ID.
 
 TABLE SCHEMA:
@@ -57,13 +57,16 @@ WHERE is_active = TRUE
 /*
 ===============================================================================
 INTERVIEW & PERFORMANCE NOTES:
-1. Operator Precedence (AND over OR):
-   In SQL, AND binds more tightly than OR. Enclosing `(condition1 OR condition2)` 
-   in parentheses guarantees that the OR evaluation is isolated and both must 
-   comply with the preceding AND constraints.
+1. Three-Valued Logic & Equality with NULL:
+   `column = NULL` is always UNKNOWN and evaluates to FALSE in a WHERE filter.
+   Explicit predicate `IS NULL` or `IS NOT NULL` is mandatory.
 
-2. NULL Verification:
-   Never use `= NULL` or `!= NULL`. Standard SQL requires `IS NULL` or `IS NOT NULL` 
-   because comparison with NULL yields UNKNOWN.
+2. Operator Precedence:
+   `AND` takes precedence over `OR`. Enclosing `(condition1 OR condition2)` in 
+   parentheses ensures the OR condition is evaluated as a combined compound condition.
+
+3. Index Considerations:
+   Standard B-Tree indexes in some RDBMS (like Oracle) do not index rows where all 
+   indexed columns are NULL. In PostgreSQL and SQL Server, NULLs are indexed in B-Trees.
 ===============================================================================
 */
