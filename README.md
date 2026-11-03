@@ -1,54 +1,52 @@
-# 🥋 SQL Interview Mastery — 450 Questions Challenge
-### (Data Analyst & SQL Developer | 2+ Years Experience)
+# 🥋 SQL Interview Mastery — 150 Questions Challenge
+### (Target: Fresher & Junior Data Analyst | 0 — 1 Year Experience)
 
-![SQL Challenge](https://img.shields.io/badge/SQL-450_Questions_Challenge-blue.svg)
-![Target Role](https://img.shields.io/badge/Role-Data_Analyst_%7C_SQL_Developer-orange.svg)
+![SQL Challenge](https://img.shields.io/badge/SQL-150_Questions_Challenge-blue.svg)
+![Target Role](https://img.shields.io/badge/Role-Data_Analyst_%280--1_Year%29-orange.svg)
+![Progress](https://img.shields.io/badge/Progress-10%2F150_%287%25%29-brightgreen.svg)
 ![Status](https://img.shields.io/badge/Status-In_Progress-brightgreen.svg)
 
-A production-grade, battle-tested repository containing **450 curated SQL interview questions** ranging from foundational concepts to advanced FAANG/Product-company analytical metrics (Cohort, Churn, Funnel, Gaps & Islands, Recursive CTEs).
+A curated, battle-tested repository containing **150 high-yield SQL interview questions** specifically designed for **Fresher & 0-1 Year Data Analyst** technical interview rounds (TCS, Accenture, Infosys, Amazon, Swiggy, FinTech startups).
 
 ---
 
-## 🗂️ Curriculum & Progress Tracker (10 / 450)
+## 🗂️ Topic-Wise Curriculum & Progress Tracker (10 / 150)
 
-| Tier | Category | Target | Completed | Progress |
-|------|----------|--------|-----------|----------|
-| **1. Basic** | 01. Basic Easy | 50 | 10 | `[██░░░░░░░░] 20%` |
-| | 02. Basic Medium | 50 | 0 | `[░░░░░░░░░░] 0%` |
-| | 03. Basic Hard | 50 | 0 | `[░░░░░░░░░░] 0%` |
-| **2. Intermediate** | 01. Intermediate Easy | 50 | 0 | `[░░░░░░░░░░] 0%` |
-| | 02. Intermediate Medium | 50 | 0 | `[░░░░░░░░░░] 0%` |
-| | 03. Intermediate Hard | 50 | 0 | `[░░░░░░░░░░] 0%` |
-| **3. Advance** | 01. Advance Easy | 50 | 0 | `[░░░░░░░░░░] 0%` |
-| | 02. Advance Medium | 50 | 0 | `[░░░░░░░░░░] 0%` |
-| | 03. Advance Hard | 50 | 0 | `[░░░░░░░░░░] 0%` |
-| **TOTAL** | **9 Categories** | **450** | **0** | **0 / 450** |
+| Block | Topic / Category | Target | Completed | Progress |
+|---|---|---|---|---|
+| **01** | **Foundations & Data Filtering** (`WHERE`, `LIKE`, `IN`, `BETWEEN`, `NULL`, `ORDER BY`, `LIMIT`) | 10 | 10 | `[██████████] 100%` ✅ |
+| **02** | **String & Date Cleaning** (`CONCAT`, `UPPER`/`LOWER`, `SUBSTRING`, `DATEDIFF`, `DATEADD`) | 15 | 0 | `[░░░░░░░░░░] 0%` |
+| **03** | **Aggregations & Grouping** (`COUNT`, `SUM`, `AVG`, `GROUP BY`, `HAVING`) | 25 | 0 | `[░░░░░░░░░░] 0%` |
+| **04** | **Conditional Business Logic** (`CASE WHEN`, Bucketing, Conditional Aggregation) | 15 | 0 | `[░░░░░░░░░░] 0%` |
+| **05** | **Multi-Table Joins** (`INNER`, `LEFT` for unmatched records, 3-Table chains, `SELF JOIN`) | 35 | 0 | `[░░░░░░░░░░] 0%` |
+| **06** | **Subqueries & CTEs** (Scalar/Correlated Subqueries, `WITH` clause modular pipelines) | 20 | 0 | `[░░░░░░░░░░] 0%` |
+| **07** | **Window Functions & Ranking** (`ROW_NUMBER`, `RANK`, `DENSE_RANK`, `LAG`/`LEAD`, Running Totals)| 20 | 0 | `[░░░░░░░░░░] 0%` |
+| **08** | **Real Company Mock Sets** (Amazon, TCS, Accenture, FinTech end-to-end case scenarios) | 10 | 0 | `[░░░░░░░░░░] 0%` |
+| **TOTAL** | **8 Focused Blocks** | **150** | **10** | **10 / 150 (7%)** |
 
 ---
 
 ## 📁 Repository Structure
-```
-sql-interview-450-mastery/
-├── 01_Basic/
-│   ├── 01_Basic_Easy/       # (Q001 - Q050) Select, Filtering, Distinct, Basic Math
-│   ├── 02_Basic_Medium/     # (Q051 - Q100) Group By, Having, String/Date transforms
-│   └── 03_Basic_Hard/       # (Q101 - Q150) Case When Pivots, Null handling edge cases
-├── 02_Intermediate/
-│   ├── 01_Inter_Easy/       # (Q151 - Q200) Inner & Left Joins, Basic Subqueries
-│   ├── 02_Inter_Medium/     # (Q201 - Q250) Self-Joins, Anti-Joins, CTEs
-│   └── 03_Inter_Hard/       # (Q251 - Q300) Multi-table fanouts, Non-equi joins
-└── 03_Advance/
-    ├── 01_Adv_Easy/         # (Q301 - Q350) Window Functions (Row_Number, Rank, Lag/Lead)
-    ├── 02_Adv_Medium/       # (Q351 - Q400) Frame clauses, Running sums, Moving averages
-    └── 03_Adv_Hard/         # (Q401 - Q450) Cohorts, Funnels, Gaps & Islands, Recursive CTEs
+```text
+sql-interview-150-mastery/
+├── README.md                                 # Master Curriculum & Tracker
+├── INTERVIEW_QUICK_REVISION_NOTES.md         # Formula & Interviewer Defense Notes
+├── 01_Foundations_and_Filtering/             # (Q001 - Q010) [COMPLETED]
+├── 02_String_and_Date_Cleaning/              # (Q011 - Q025)
+├── 03_Aggregations_and_Grouping/             # (Q026 - Q050)
+├── 04_Conditional_Logic_Case_When/           # (Q051 - Q065)
+├── 05_Multi_Table_Joins/                     # (Q066 - Q100)
+├── 06_Subqueries_and_CTEs/                   # (Q101 - Q120)
+├── 07_Window_Functions_Ranking/              # (Q121 - Q140)
+└── 08_Real_Company_Mock_Sets/                # (Q141 - Q150)
 ```
 
 ---
 
-## 🛠️ File Format Standard
-Har file standard format follow karti hai:
-- Problem Statement & Business Context
-- Table Schema & Sample Data
-- Expected Output
-- Final SQL Solution
-- Key Interview Takeaways & Optimization Notes
+## 🛠️ File Format Standards
+Each question file (`.sql`) contains:
+- **Business Problem & Context**: Practical real-world scenario (E-commerce, FinTech, HR, Healthcare).
+- **Table Schema & Sample Data**: Ready-to-run DDL/DML inserts.
+- **Expected Output Grid**: Exact columns and values expected by interviewers.
+- **Production-Grade Solution**: ANSI SQL compliant query.
+- **Interview & Performance Notes**: Common edge-case traps, SARGability, and optimization tips.

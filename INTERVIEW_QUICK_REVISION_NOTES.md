@@ -1,5 +1,5 @@
-# ⚡ SQL Interview Revision Cheat Sheet (Zero to Hero)
-### (Har Question Ka Core Concept, Interviewer Ka Trap & Exact Answer)
+# ⚡ SQL Interview Revision Cheat Sheet (150 Mastery)
+### (Target: Fresher & Junior Data Analyst | 0 — 1 Year Experience)
 
 ---
 
