@@ -1,19 +1,40 @@
 # 🥋 SQL Interview Mastery — 200 Questions Challenge
 ### (Target: Fresher & Data Analyst | 0 — 2 Years Experience)
 
-![SQL Challenge](https://img.shields.io/badge/SQL-200_Questions_Challenge-blue.svg)
-![Target Role](https://img.shields.io/badge/Role-Data_Analyst_%280--2_Years%29-orange.svg)
-![Progress](https://img.shields.io/badge/Progress-1%2F200_%281%25%29-brightgreen.svg)
-![Status](https://img.shields.io/badge/Status-In_Progress-brightgreen.svg)
+<div align="center">
 
-A production-grade, battle-tested repository containing **200 curated, high-frequency SQL interview questions** specifically designed for **0 — 2 Years Experience Data Analyst** interviews (Service companies: TCS, Accenture, Infosys, Cognizant + Product/Startups: Amazon, Swiggy, FinTech).
+![SQL Challenge](https://img.shields.io/badge/SQL-200_Questions_Challenge-blue.svg?style=for-the-badge&logo=postgresql)
+![Role](https://img.shields.io/badge/Target_Role-Data_Analyst_%280--2_Years%29-orange.svg?style=for-the-badge)
+![Progress](https://img.shields.io/badge/Progress-1%2F200_%281%25%29-brightgreen.svg?style=for-the-badge)
+![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)
+
+<p align="center">
+  <b>Production-grade, battle-tested SQL solutions & architectural patterns asked by Tier-1 product companies & global consultancies.</b>
+</p>
+
+[⚡ Quick Revision Cheat Sheet](INTERVIEW_QUICK_REVISION_NOTES.md) •
+[📂 Browse Questions](#-solved-questions-index) •
+[📊 Curriculum Progress](#-curriculum--progress-tracker-1--200) •
+[👨‍💻 Author](#-author--connect)
+
+</div>
 
 ---
 
-## 🗂️ Topic-Wise Curriculum & Progress Tracker (1 / 200)
+## 📌 Why This Repository Exists
+Most candidates practice toy SQL problems (`SELECT * FROM students`). In real technical interviews (TCS, Accenture, Amazon, Swiggy, FinTech startups), interviewers test:
+- **Edge cases**: NULL equality traps, strict boundary checks, integer division hazards.
+- **Performance**: SARGable filters, covering indexes, and execution plans.
+- **Business metrics**: MoM growth, cohort retention, priority triage queues, and amortization breakdowns.
+
+This repository documents **200 real-world, high-frequency interview questions** with reproducible schemas, production queries, and interviewer defense logic.
+
+---
+
+## 🗂️ Curriculum & Progress Tracker (1 / 200)
 
 | Block | Topic / Category | Target | Completed | Progress |
-|---|---|---|---|---|
+|---|---|:---:|:---:|:---|
 | **01** | **Foundations & Data Filtering** (`WHERE`, `LIKE`, `IN`, `BETWEEN`, `NULL`, `ORDER BY`, `LIMIT`, Math) | 15 | 1 | `[█░░░░░░░░░] 7%` |
 | **02** | **String & Date Cleaning** (`CONCAT`, `UPPER`/`LOWER`, `SUBSTRING`, `DATEDIFF`, `DATEADD`) | 20 | 0 | `[░░░░░░░░░░] 0%` |
 | **03** | **Aggregations & Grouping** (`COUNT`, `SUM`, `AVG`, `GROUP BY`, `HAVING`, NULL traps) | 30 | 0 | `[░░░░░░░░░░] 0%` |
@@ -26,10 +47,22 @@ A production-grade, battle-tested repository containing **200 curated, high-freq
 
 ---
 
+## 📖 Solved Questions Index
+
+| # | Question Title | Topic | Company Tags | Solution Link |
+|:---:|---|---|---|:---:|
+| **Q001** | Filter High Earners by Salary | Numeric Boundary & Column Projection | TCS, Infosys, Cognizant | [Q001 Solution ↗️](01_Foundations_and_Filtering/Q001_filter_employees_by_salary.sql) |
+| **Q002** | Undelivered Online Orders | Inequality (`<>`) & The NULL Trap | Amazon, Swiggy, Zomato | *In Progress* |
+
+*(This index updates dynamically with every completed problem!)*
+
+---
+
 ## 📁 Repository Structure
 ```text
-sql-interview-mastery/
-├── README.md                                 # Master Curriculum & Tracker
+sql-interview-200-mastery/
+├── README.md                                 # Master Curriculum & Live Tracker
+├── LICENSE                                   # MIT Open-Source License
 ├── INTERVIEW_QUICK_REVISION_NOTES.md         # Formula & Interviewer Defense Notes
 ├── 01_Foundations_and_Filtering/             # (Q001 - Q015)
 ├── 02_String_and_Date_Cleaning/              # (Q016 - Q035)
@@ -44,10 +77,22 @@ sql-interview-mastery/
 ---
 
 ## 🛠️ File Format Standards
-Each question file (`.sql`) contains:
-- **Company Tag & Frequency**: Target companies where this exact question pattern is asked.
-- **Business Problem & Context**: Practical real-world scenario (E-commerce, FinTech, HR, Healthcare).
-- **Table Schema & Sample Data**: Ready-to-run DDL/DML inserts.
-- **Expected Output Grid**: Exact columns and values expected by interviewers.
-- **Production-Grade Solution**: ANSI SQL compliant query.
-- **Interview & Performance Notes**: Common edge-case traps, SARGability, and optimization tips.
+Each `.sql` problem file follows strict production guidelines:
+1. **Header Metadata**: Question ID, Block, Company Tags, Difficulty, SQL Dialect compatibility.
+2. **Business Context**: The exact business motivation behind the inquiry.
+3. **Reproducible Schema & DML**: DDL create statements and ready-to-insert sample records.
+4. **Expected Output Grid**: Tabular ground truth verification.
+5. **Clean ANSI SQL Query**: Formatted, readable, and production-tested query.
+6. **Interviewer Defense & Notes**: SARGability, indexing insights, and common logic traps.
+
+---
+
+## 👨‍💻 Author & Connect
+
+**Ravinder Gupta**
+* Aspiring Data Analyst & SQL Specialist
+* GitHub: [@ravinder0710](https://github.com/ravinder0710)
+* Email: [iamravindergupta17@gmail.com](mailto:iamravindergupta17@gmail.com)
+
+---
+*Maintained with daily updates and active GitHub commits.*
