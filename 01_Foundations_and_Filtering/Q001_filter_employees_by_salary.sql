@@ -1,8 +1,10 @@
 /*
 ===============================================================================
 Question ID: Q001
-Category: 01_Basic / 01_Basic_Easy
-Topic: Column Projection & Numeric Boundary Filtering
+Curriculum: 200 SQL Interview Mastery Challenge (0 - 2 Years Track)
+Block: 01_Foundations_and_Filtering
+Company Tag: TCS / Infosys / Cognizant / Retail Startups
+Topic: Column Projection & Strict Numeric Boundary Filtering (>)
 Difficulty: Easy
 SQL Standard: ANSI SQL (PostgreSQL, MySQL, SQL Server compatible)
 ===============================================================================
