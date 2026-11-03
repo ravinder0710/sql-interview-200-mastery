@@ -1,5 +1,5 @@
-# ⚡ SQL Interview Revision Cheat Sheet (150 Mastery)
-### (Target: Fresher & Junior Data Analyst | 0 — 1 Year Experience)
+# ⚡ SQL Interview Revision Cheat Sheet (200 Mastery)
+### (Target: Fresher & Data Analyst | 0 — 2 Years Experience)
 
 ---
 
