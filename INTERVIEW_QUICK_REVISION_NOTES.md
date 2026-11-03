@@ -94,4 +94,17 @@
   > *"Multi-column sorting evaluates subsequent columns only as tie-breakers when previous sort keys match. For optimal performance on high-volume queries with ORDER BY, a composite B-Tree index matching the exact filter and sort column order avoids costly in-memory Sort operators."*
 
 ---
+
+### 🔹 Q007: Top-N Truncation & Dialect Variations (`LIMIT` / `TOP`)
+* **Syntax / Formula**:
+  * PostgreSQL/MySQL: `SELECT cols FROM table ORDER BY metric DESC LIMIT n;`
+  * SQL Server: `SELECT TOP n cols FROM table ORDER BY metric DESC;`
+  * ANSI / Oracle: `SELECT cols FROM table ORDER BY metric DESC FETCH FIRST n ROWS ONLY;`
+* **Interviewer Trap**:
+  1. Forgetting dialect syntax (writing `LIMIT` in SQL Server or `TOP` in MySQL).
+  2. The Ties Trap: `LIMIT 3` drops tied candidates arbitrarily. In SQL Server use `TOP 3 WITH TIES`, or use `DENSE_RANK()` in ANSI SQL.
+* **Interviewer Ko Kya Bolna Hai (Interview Answer)**:
+  > *"LIMIT runs at the very end of query execution after ORDER BY. When backed by an index, the engine executes an optimized Top-N heapsort, stopping scanning as soon as the first n rows are satisfied without sorting the entire dataset."*
+
+---
 *(Will be updated continuously with every question!)*
