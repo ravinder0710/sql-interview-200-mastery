@@ -79,4 +79,19 @@
   > *"SQL treats NULL as an unknown state rather than a concrete value, requiring `IS NULL` instead of `= NULL`. Furthermore, since logical `AND` takes precedence over `OR`, wrapping compound `OR` conditions in parentheses is strictly mandatory to prevent logic leakage."*
 
 ---
+
+### 🔹 Q006: Multi-Column Sorting & Tie-Breaking (`ORDER BY`)
+* **Syntax / Formula**:
+  ```sql
+  SELECT col1, col2, col3 FROM table_name 
+  WHERE status = 'Active' 
+  ORDER BY primary_col ASC, secondary_col DESC, tertiary_col ASC;
+  ```
+* **Interviewer Trap**:
+  1. Relying on positional notation (`ORDER BY 1, 2 DESC`). If someone changes the column sequence in `SELECT`, sorting breaks silently.
+  2. Not knowing NULL sort behavior: Postgres places NULLs last in `ASC` (default), whereas MySQL/SQL Server place NULLs first in `ASC`.
+* **Interviewer Ko Kya Bolna Hai (Interview Answer)**:
+  > *"Multi-column sorting evaluates subsequent columns only as tie-breakers when previous sort keys match. For optimal performance on high-volume queries with ORDER BY, a composite B-Tree index matching the exact filter and sort column order avoids costly in-memory Sort operators."*
+
+---
 *(Will be updated continuously with every question!)*

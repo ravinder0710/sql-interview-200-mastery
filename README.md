@@ -9,11 +9,11 @@ A production-grade, battle-tested repository containing **450 curated SQL interv
 
 ---
 
-## 🗂️ Curriculum & Progress Tracker (5 / 450)
+## 🗂️ Curriculum & Progress Tracker (6 / 450)
 
 | Tier | Category | Target | Completed | Progress |
 |------|----------|--------|-----------|----------|
-| **1. Basic** | 01. Basic Easy | 50 | 5 | `[█░░░░░░░░░] 10%` |
+| **1. Basic** | 01. Basic Easy | 50 | 6 | `[█░░░░░░░░░] 12%` |
 | | 02. Basic Medium | 50 | 0 | `[░░░░░░░░░░] 0%` |
 | | 03. Basic Hard | 50 | 0 | `[░░░░░░░░░░] 0%` |
 | **2. Intermediate** | 01. Intermediate Easy | 50 | 0 | `[░░░░░░░░░░] 0%` |
