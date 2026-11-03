@@ -108,20 +108,20 @@
 
 ---
 
-### 🔹 Q008: Nth Highest Distinct Value (`DISTINCT` + `LIMIT 1 OFFSET N-1`)
+### 🔹 Q008: Nth Highest Value via Pagination (`LIMIT 1 OFFSET N-1` + `DISTINCT`)
 * **Syntax / Formula**:
   ```sql
   SELECT DISTINCT price AS nth_highest 
   FROM table_name 
-  WHERE filter_condition 
+  WHERE filter_col = 'Val' 
   ORDER BY price DESC 
   LIMIT 1 OFFSET (N - 1);
   ```
 * **Interviewer Trap**:
-  1. Forgetting `DISTINCT`: If 1st place has 2 tied records, `OFFSET 1` returns the 1st place price again!
-  2. Forgetting `DESC`: Without `DESC`, `ORDER BY price` defaults to `ASC`, returning the Nth *cheapest* value instead of Nth *highest*.
+  1. Forgetting `DISTINCT`: If 3 rows tie for 1st place, `OFFSET 1` returns the 1st place value again!
+  2. The Empty Set vs NULL Trap: If table has < N records, query returns 0 rows. To return `NULL` (LeetCode 176 standard), wrap in outer `SELECT (...) AS col`.
 * **Interviewer Ko Kya Bolna Hai (Interview Answer)**:
-  > *"To find the Nth highest value without window functions, we use `DISTINCT` to collapse duplicate price tiers, order by `DESC`, and apply `LIMIT 1 OFFSET (N - 1)`. If no Nth record exists and the interviewer wants a NULL returned instead of an empty result set, wrap the expression inside a scalar subquery `SELECT (SELECT DISTINCT ... LIMIT 1 OFFSET 1) AS second_highest;`."*
+  > *"To retrieve the Nth distinct extreme without window functions, we use `LIMIT 1 OFFSET (N - 1)` with `DISTINCT`. In large datasets (millions of rows), OFFSET can be slow because the engine must scan and discard N-1 rows; for production scalability, window functions (`DENSE_RANK`) or keyset pagination are preferred."*
 
 ---
 *(Will be updated continuously with every question!)*
