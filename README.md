@@ -3,18 +3,18 @@
 
 ![SQL Challenge](https://img.shields.io/badge/SQL-200_Questions_Challenge-blue.svg)
 ![Target Role](https://img.shields.io/badge/Role-Data_Analyst_%280--2_Years%29-orange.svg)
-![Progress](https://img.shields.io/badge/Progress-10%2F200_%285%25%29-brightgreen.svg)
+![Progress](https://img.shields.io/badge/Progress-1%2F200_%281%25%29-brightgreen.svg)
 ![Status](https://img.shields.io/badge/Status-In_Progress-brightgreen.svg)
 
 A production-grade, battle-tested repository containing **200 curated, high-frequency SQL interview questions** specifically designed for **0 — 2 Years Experience Data Analyst** interviews (Service companies: TCS, Accenture, Infosys, Cognizant + Product/Startups: Amazon, Swiggy, FinTech).
 
 ---
 
-## 🗂️ Topic-Wise Curriculum & Progress Tracker (10 / 200)
+## 🗂️ Topic-Wise Curriculum & Progress Tracker (1 / 200)
 
 | Block | Topic / Category | Target | Completed | Progress |
 |---|---|---|---|---|
-| **01** | **Foundations & Data Filtering** (`WHERE`, `LIKE`, `IN`, `BETWEEN`, `NULL`, `ORDER BY`, `LIMIT`, Math) | 15 | 10 | `[███████░░░] 67%` |
+| **01** | **Foundations & Data Filtering** (`WHERE`, `LIKE`, `IN`, `BETWEEN`, `NULL`, `ORDER BY`, `LIMIT`, Math) | 15 | 1 | `[█░░░░░░░░░] 7%` |
 | **02** | **String & Date Cleaning** (`CONCAT`, `UPPER`/`LOWER`, `SUBSTRING`, `DATEDIFF`, `DATEADD`) | 20 | 0 | `[░░░░░░░░░░] 0%` |
 | **03** | **Aggregations & Grouping** (`COUNT`, `SUM`, `AVG`, `GROUP BY`, `HAVING`, NULL traps) | 30 | 0 | `[░░░░░░░░░░] 0%` |
 | **04** | **Conditional Business Logic** (`CASE WHEN`, Bucketing, Conditional Aggregation) | 20 | 0 | `[░░░░░░░░░░] 0%` |
