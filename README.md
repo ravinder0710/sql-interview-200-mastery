@@ -22,7 +22,7 @@ A production-grade, battle-tested repository containing **200 curated, high-freq
 | **06** | **Subqueries & CTEs** (Scalar/Correlated Subqueries, `WITH` clause modular pipelines) | 25 | 0 | `[░░░░░░░░░░] 0%` |
 | **07** | **Window Functions & Ranking** (`ROW_NUMBER`, `RANK`, `DENSE_RANK`, `LAG`/`LEAD`, Running Totals)| 25 | 0 | `[░░░░░░░░░░] 0%` |
 | **08** | **Real Company Mock Sets & Case Studies** (Amazon, TCS, Accenture, FinTech case scenarios) | 15 | 0 | `[░░░░░░░░░░] 0%` |
-| **TOTAL** | **8 High-Impact Blocks** | **200** | **10** | **10 / 200 (5%)** |
+| **TOTAL** | **8 High-Impact Blocks** | **200** | **1** | **1 / 200 (1%)** |
 
 ---
 
