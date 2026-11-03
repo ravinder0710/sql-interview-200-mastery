@@ -124,4 +124,24 @@
   > *"To retrieve the Nth distinct extreme without window functions, we use `LIMIT 1 OFFSET (N - 1)` with `DISTINCT`. In large datasets (millions of rows), OFFSET can be slow because the engine must scan and discard N-1 rows; for production scalability, window functions (`DENSE_RANK`) or keyset pagination are preferred."*
 
 ---
+
+### 🔹 Q009: Calculated Columns, Arithmetic & The Integer Division Trap
+* **Syntax / Formula**:
+  ```sql
+  SELECT 
+      col1, 
+      (qty * unit_price * (1 - discount / 100.0)) AS net_revenue,
+      (net_revenue_formula - (qty * cost)) AS profit
+  FROM table_name 
+  WHERE status = 'Completed' 
+  ORDER BY profit DESC;
+  ```
+* **Interviewer Trap**:
+  1. Integer Division Trap: `discount / 100` truncates to `0` in SQL Server & PostgreSQL. Always use `100.0`.
+  2. Alias Reuse Trap: An alias defined in `SELECT` cannot be referenced in the same `SELECT` clause (must repeat expression or use CTE).
+  3. But aliases CAN be used in `ORDER BY` because `ORDER BY` executes after `SELECT`.
+* **Interviewer Ko Kya Bolna Hai (Interview Answer)**:
+  > *"Always enforce decimal literals (e.g. 100.0) in division to prevent integer truncation. Because SELECT projections are conceptually evaluated in parallel, aliases cannot be reused within the same SELECT statement, though they are valid in ORDER BY since sorting occurs after projection."*
+
+---
 *(Will be updated continuously with every question!)*
