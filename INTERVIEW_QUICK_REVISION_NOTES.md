@@ -107,4 +107,21 @@
   > *"LIMIT runs at the very end of query execution after ORDER BY. When backed by an index, the engine executes an optimized Top-N heapsort, stopping scanning as soon as the first n rows are satisfied without sorting the entire dataset."*
 
 ---
+
+### 🔹 Q008: Nth Highest Distinct Value (`DISTINCT` + `LIMIT 1 OFFSET N-1`)
+* **Syntax / Formula**:
+  ```sql
+  SELECT DISTINCT price AS nth_highest 
+  FROM table_name 
+  WHERE filter_condition 
+  ORDER BY price DESC 
+  LIMIT 1 OFFSET (N - 1);
+  ```
+* **Interviewer Trap**:
+  1. Forgetting `DISTINCT`: If 1st place has 2 tied records, `OFFSET 1` returns the 1st place price again!
+  2. Forgetting `DESC`: Without `DESC`, `ORDER BY price` defaults to `ASC`, returning the Nth *cheapest* value instead of Nth *highest*.
+* **Interviewer Ko Kya Bolna Hai (Interview Answer)**:
+  > *"To find the Nth highest value without window functions, we use `DISTINCT` to collapse duplicate price tiers, order by `DESC`, and apply `LIMIT 1 OFFSET (N - 1)`. If no Nth record exists and the interviewer wants a NULL returned instead of an empty result set, wrap the expression inside a scalar subquery `SELECT (SELECT DISTINCT ... LIMIT 1 OFFSET 1) AS second_highest;`."*
+
+---
 *(Will be updated continuously with every question!)*
