@@ -144,4 +144,21 @@
   > *"Always enforce decimal literals (e.g. 100.0) in division to prevent integer truncation. Because SELECT projections are conceptually evaluated in parallel, aliases cannot be reused within the same SELECT statement, though they are valid in ORDER BY since sorting occurs after projection."*
 
 ---
+
+### 🔹 Q010: Math Functions (`ROUND`, `CEIL`, `FLOOR`) & CTE Alias Chaining
+* **Syntax / Formula**:
+  ```sql
+  WITH step1 AS (
+      SELECT id, ROUND(expr, 2) AS interest FROM table_name WHERE status = 'Approved'
+  )
+  SELECT id, interest, CEIL((principal + interest) / tenure) AS emi 
+  FROM step1 ORDER BY emi DESC;
+  ```
+* **Interviewer Trap**:
+  1. Trying to reuse an alias like `CEIL(total_repayment / tenure)` in the same SELECT where `total_repayment` was computed.
+  2. Difference between `CEIL` (rounds up to integer), `FLOOR` (rounds down), and `ROUND` (nearest decimal).
+* **Interviewer Ko Kya Bolna Hai (Interview Answer)**:
+  > *"When calculated metrics depend on previously computed aliases, repeating complex formulas degrades maintainability. Utilizing a Common Table Expression (CTE) creates clean logical layers, allowing downstream SELECT statements to reference upstream aliases natively."*
+
+---
 *(Will be updated continuously with every question!)*
