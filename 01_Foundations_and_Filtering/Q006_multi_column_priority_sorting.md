@@ -3,19 +3,20 @@
 ## 📌 Metadata
 - **Module:** Block 01: Foundations & Data Filtering
 - **Question Number:** 006 / 200
+- **Company Tag:** Hospital & Logistics Triage
 - **Target Role:** Data Analyst / SQL Developer (0 — 2 Years Experience)
 
 ---
 
-## 🏢 Business Scenario (Interviewer Context)
-"Hospital Emergency Room (ER) / OPD queue management system mein 'Waiting' status wale patients ki live triage queue display karni hai. Sorting logic hierarchical hona chahiye: pehle Doctor ID ascending, fir Emergency Priority Score descending (critical patients pehle), aur agar priority tie ho toh Arrival Time ascending (first-come first-served)."
+## 🏢 Business Scenario
+A hospital emergency room (ER) triage management system requires a live dashboard view of all waiting patients (`status = 'Waiting'`). The display queue must adhere to a strict clinical priority hierarchy: grouped primarily by `doctor_id ASC`, ordered secondarily by clinical urgency (`priority_score DESC`), and resolved deterministically by earliest arrival time (`appointment_time ASC`).
 
 ---
 
 ## 📊 Sample Mock Table (`patient_appointments`)
 
 | appointment_id | patient_name | doctor_id | priority_score | appointment_time | status |
-| :--- | :--- | :--- | :--- | :--- | :--- |
+| :---: | :--- | :---: | :---: | :---: | :--- |
 | 1001 | Ramesh Gupta | 101 | 3 | 09:15:00 | Waiting |
 | 1002 | Sunita Sen | 102 | 5 | 09:20:00 | Waiting |
 | 1003 | Vikas Mehra | 101 | 5 | 09:30:00 | Waiting |
@@ -28,7 +29,7 @@
 ## 🎯 Expected Output Table
 
 | appointment_id | patient_name | doctor_id | priority_score | appointment_time |
-| :--- | :--- | :--- | :--- | :--- |
+| :---: | :--- | :---: | :---: | :---: |
 | 1004 | Anita Roy | 101 | 5 | 09:10:00 |
 | 1003 | Vikas Mehra | 101 | 5 | 09:30:00 |
 | 1001 | Ramesh Gupta | 101 | 3 | 09:15:00 |
@@ -56,16 +57,21 @@ ORDER BY
 
 ---
 
-## ⚙️ Execution Logic (Saral Bhasha Me)
-Hierarchical sorting engine primary key (`doctor_id`) se sort karta hai. Jab tak doctors distinct hain, agle columns inactive rehte hain. Jaise hi doctor same hota hai, engine `priority_score DESC` se rank karta hai. Agar score bhi tie ho jaye, tab `appointment_time ASC` final tie-breaker banata hai.
+## ⚙️ Execution Logic & Query Lifecycle
+1. **Primary Sort Key (`doctor_id ASC`)**: Groups patient queues by their consulting physician.
+2. **Secondary Sort Key (`priority_score DESC`)**: Ranks critical patients highest within each doctor's cohort.
+3. **Tertiary Tie-Breaker (`appointment_time ASC`)**: Resolves identical priority scores fairly based on arrival timestamp.
 
 ---
 
-## ⚠️ Interviewer Trap Question
-*"Kuch developers shortcut ke liye `ORDER BY 3, 4 DESC, 5` likh dete hain. Kya production code mein yeh safe practice hai? Aur agar `priority_score` kisi patient ka NULL ho toh wo kahan sort hoga?"*
+## ⚠️ Common Interview Traps & Edge Cases
+1. **Positional Numbering Anti-Pattern (`ORDER BY 3, 4 DESC, 5`)**:
+   - Referencing columns by integer positions creates silent production bugs if column orders in the `SELECT` projection are modified in future pipeline deployments.
+2. **NULL Value Sorting Across Engines**:
+   - In MySQL and SQL Server, `ASC` sorts `NULL` values first.
+   - In PostgreSQL and Oracle, `ASC` sorts `NULL` values last by default. Use explicit `NULLS LAST` for deterministic cross-engine consistency.
 
 ---
 
-## 💬 Candidate ka Perfect Jabab (1-2 Yrs Experience Style)
-> *"Sir, production environment mein positional numbers (`ORDER BY 3, 4`) use karna strict anti-pattern hai. Kal ko agar team mein kisi ne SELECT list mein columns ka sequence badal diya, toh poori sorting bina kisi syntax error ke galat business columns par lag jayegi. Hamesha explicit column names hi likhne chahiye.*  
-> *Rahi baat NULL values ki, SQL dialect ke hisab se default behavior alag hota hai—MySQL aur SQL Server ASC order mein NULL ko sabse upar (NULLS FIRST) rakhte hain jabki PostgreSQL ASC mein NULL ko last mein rakhta hai. Consistent output ke liye standard SQL mein hum explicit `NULLS LAST` specify karte hain."*
+## 💬 Candidate's Defense (1–2 Years Experience Style)
+> *"Multi-column sorting evaluates criteria sequentially, using secondary keys strictly as deterministic tie-breakers. Specifying explicit column identifiers rather than ordinal numbers is vital for maintainability and prevents pipeline breakage when underlying projection schemas evolve."*

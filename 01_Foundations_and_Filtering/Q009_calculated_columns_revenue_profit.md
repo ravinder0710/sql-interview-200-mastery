@@ -3,19 +3,20 @@
 ## 📌 Metadata
 - **Module:** Block 01: Foundations & Data Filtering
 - **Question Number:** 009 / 200
+- **Company Tag:** Retail E-Commerce Unit Economics
 - **Target Role:** Data Analyst / SQL Developer (0 — 2 Years Experience)
 
 ---
 
-## 🏢 Business Scenario (Interviewer Context)
-"E-commerce finance reconciliation report mein 'Completed' order line items ka net revenue (discount deduct karke) aur net profit (cost price minus karke) compute karna hai, aur report ko highest profit ke basis par sort karna hai."
+## 🏢 Business Scenario
+During end-of-month financial reconciliation, an e-commerce finance team needs to calculate the net revenue (gross sales minus discounts) and net profit (net revenue minus total cost of goods sold) for all 'Completed' line items, sorted by total profit in descending order.
 
 ---
 
 ## 📊 Sample Mock Table (`order_items`)
 
 | item_id | item_name | unit_price | cost_price | quantity | discount_pct | order_status |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| :---: | :--- | :---: | :---: | :---: | :---: | :--- |
 | 101 | Gaming Mouse | 2500.00 | 1400.00 | 2 | 10.00 | Completed |
 | 102 | Mechanical Keyboard | 6000.00 | 3800.00 | 1 | 15.00 | Completed |
 | 103 | USB-C Cable | 500.00 | 150.00 | 4 | 0.00 | Cancelled |
@@ -27,7 +28,7 @@
 ## 🎯 Expected Output Table
 
 | item_id | item_name | net_revenue | profit |
-| :--- | :--- | :--- | :--- |
+| :---: | :--- | :---: | :---: |
 | 104 | 4K Monitor | 26600.00 | 7600.00 |
 | 105 | Noise Cancelling Headphones | 19200.00 | 4200.00 |
 | 101 | Gaming Mouse | 4500.00 | 1700.00 |
@@ -50,16 +51,20 @@ ORDER BY profit DESC;
 
 ---
 
-## ⚙️ Execution Logic (Saral Bhasha Me)
-Maths calculation standard BODMAS follow karti hai: pehle brackets `(1 - discount_pct / 100.0)` calculate hota hai, phir gross revenue se multiply hoke net revenue banta hai, aur aakhir mein cost deduct karke net profit derive hota hai.
+## ⚙️ Execution Logic & Query Lifecycle
+1. **Discount Factor**: Computes `(1 - discount_pct / 100.0)`.
+2. **Gross vs Net**: Multiplies quantity and unit price by the discount multiplier.
+3. **Margin Calculation**: Deducts total COGS (`cost_price * quantity`) to yield net profit.
 
 ---
 
-## ⚠️ Interviewer Trap Question
-*"Tumne formula mein `100.0` kyu likha, simple integer `100` kyu nahi likha? Aur kya hum usi SELECT statement ke andar `net_revenue - (cost_price * quantity)` karke seedha `net_revenue` alias reuse kar sakte hain?"*
+## ⚠️ Common Interview Traps & Edge Cases
+1. **The Integer Division Truncation Trap**:
+   - In SQL Server and PostgreSQL, dividing two integer types (`15 / 100`) truncates fractional components to integer zero (`0`). Using decimal literals (`100.0`) forces floating-point decimal division.
+2. **Column Alias Reusability in the Same `SELECT`**:
+   - Projections evaluate concurrently; an alias declared in column 3 (`net_revenue`) cannot be referenced inside column 4 within the same `SELECT`. For cleaner architecture, wrap in a CTE.
 
 ---
 
-## 💬 Candidate ka Perfect Jabab (1-2 Yrs Experience Style)
-> *"Sir, SQL Server aur PostgreSQL jaise databases mein agar hum do integers ko divide karein (jaise `15 / 100`), toh integer division ki wajah se answer 0.15 nahi balki seedha 0 ban jata hai! Isse discount ₹0 ho jayega aur company ka financial figure distort ho jayega. `100.0` likhne se engine floating-point decimal calculation karta hai.*  
-> *Doosri baat, SQL engine SELECT projection ke sabhi expressions ko simultaneously evaluate karta hai. Isliye same SELECT clause mein declare kiya gaya column alias doosre column expression mein direct reuse nahi ho sakta. Ya toh hume formula repeat karna padta hai, ya fir clean enterprise code ke liye CTE (`WITH` clause) use karni hoti hai."*
+## 💬 Candidate's Defense (1–2 Years Experience Style)
+> *"We enforce explicit decimal precision using literals like `100.0` to avoid catastrophic integer division truncation. Furthermore, because column aliases in standard ANSI SQL are not accessible within the same projection pass, modularizing calculations with CTEs prevents formula duplication and ensures cleaner maintainability."*

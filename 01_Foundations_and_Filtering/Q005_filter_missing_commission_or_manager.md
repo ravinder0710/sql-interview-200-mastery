@@ -3,19 +3,20 @@
 ## 📌 Metadata
 - **Module:** Block 01: Foundations & Data Filtering
 - **Question Number:** 005 / 200
+- **Company Tag:** Infosys, Wipro, Payroll
 - **Target Role:** Data Analyst / SQL Developer (0 — 2 Years Experience)
 
 ---
 
-## 🏢 Business Scenario (Interviewer Context)
-"Sales HR Operations audit mein un active sales representatives ki list identify karni hai jinki base salary 50,000 ya usse zyada hai, lekin ya toh unka commission percentage set nahi hai (`commission_pct IS NULL`) ya unhe koi reporting manager assign nahi hua hai (`manager_id IS NULL`)."
+## 🏢 Business Scenario
+During a sales HR compensation audit, management needs to identify all active, high-earning sales representatives (`salary >= 50000` and `is_active = TRUE`) who have governance or policy gaps—specifically, reps who either lack an assigned commission rate (`commission_pct IS NULL`) or do not currently report to an assigned sales manager (`manager_id IS NULL`).
 
 ---
 
 ## 📊 Sample Mock Table (`sales_reps`)
 
 | rep_id | rep_name | salary | commission_pct | manager_id | is_active |
-| :--- | :--- | :--- | :--- | :--- | :--- |
+| :---: | :--- | :---: | :---: | :---: | :---: |
 | 1 | Vijay Verma | 55000.00 | NULL | 10 | True |
 | 2 | Neha Sharma | 62000.00 | 0.15 | NULL | True |
 | 3 | Rahul Sen | 48000.00 | NULL | 10 | True |
@@ -28,7 +29,7 @@
 ## 🎯 Expected Output Table
 
 | rep_id | rep_name | salary | commission_pct | manager_id |
-| :--- | :--- | :--- | :--- | :--- |
+| :---: | :--- | :---: | :---: | :---: |
 | 1 | Vijay Verma | 55000.00 | NULL | 10 |
 | 2 | Neha Sharma | 62000.00 | 0.15 | NULL |
 | 6 | Pooja Joshi | 50000.00 | 0.10 | NULL |
@@ -52,17 +53,21 @@ WHERE salary >= 50000
 
 ---
 
-## ⚙️ Execution Logic (Saral Bhasha Me)
-SQL evaluation precedence ke mutabiq `NOT` -> `AND` -> `OR` evaluate hota hai. Parentheses `(commission_pct IS NULL OR manager_id IS NULL)` lagane se OR condition isolate ho jati hai aur overall filters ke saath sahi correlate hoti hai.
+## ⚙️ Execution Logic & Query Lifecycle
+1. **Operator Precedence**: Logical operators evaluate in strict order: $\mathbf{NOT} \longrightarrow \mathbf{AND} \longrightarrow \mathbf{OR}$.
+2. **Encapsulation**: Parenthesizing `(commission_pct IS NULL OR manager_id IS NULL)` ensures the `OR` branch is resolved as a single atomic condition before being intersected with the base eligibility filters.
 
 ---
 
-## ⚠️ Interviewer Trap Question
-*"Agar tum `(commission_pct IS NULL OR manager_id IS NULL)` se parentheses `( )` hata do, toh query par kya asar padega? Kya output change hoga?"*
+## ⚠️ Common Interview Traps & Edge Cases
+1. **Omission of Parentheses (Logic Leak)**:
+   - Removing the parentheses changes the evaluation into:  
+     `(salary >= 50000 AND is_active = TRUE AND commission_pct IS NULL) OR (manager_id IS NULL)`  
+   - This flaw would mistakenly include every single employee missing a manager—even inactive staff or interns earning low wages.
+2. **Equality Trap with NULL (`= NULL`)**:
+   - Writing `commission_pct = NULL` is invalid ANSI SQL and always evaluates to `UNKNOWN`. Explicit `IS NULL` is mandatory.
 
 ---
 
-## 💬 Candidate ka Perfect Jabab (1-2 Yrs Experience Style)
-> *"Bilkul change hoga sir! SQL mein `AND` operator ki precedence `OR` se high hoti hai. Agar hum brackets hata denge, toh engine query ko aise execute karega:*  
-> `(salary >= 50000 AND is_active = TRUE AND commission_pct IS NULL) OR (manager_id IS NULL)`  
-> *Iska nateeja yeh hoga ki har wo employee jiska `manager_id` NULL hai, wo automatically output mein aa jayega—chahe uski salary 10,000 ho ya wo inactive (`is_active = FALSE`) ho! Isliye compound business logic mein brackets lagana mandatory hai taaki logic leak na ho."*
+## 💬 Candidate's Defense (1–2 Years Experience Style)
+> *"Because logical AND takes precedence over OR in SQL evaluation hierarchy, wrapping compound OR predicates inside parentheses is required to prevent unintended logic leaks. Additionally, standard comparison operators cannot evaluate NULL values; using explicit `IS NULL` ensures proper three-valued logical verification."*

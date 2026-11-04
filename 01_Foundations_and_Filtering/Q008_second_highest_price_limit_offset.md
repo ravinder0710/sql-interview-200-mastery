@@ -3,19 +3,20 @@
 ## 📌 Metadata
 - **Module:** Block 01: Foundations & Data Filtering
 - **Question Number:** 008 / 200
+- **Company Tag:** MagicBricks, 99acres
 - **Target Role:** Data Analyst / SQL Developer (0 — 2 Years Experience)
 
 ---
 
-## 🏢 Business Scenario (Interviewer Context)
-"Real estate analytics platform Bangalore city ke residential listings mein market benchmarking ke liye second highest property price find karna chahta hai (outlier / luxury penthouses ko exclude karke realistic top benchmark lene ke liye)."
+## 🏢 Business Scenario
+A real estate valuation platform in Bangalore is creating an automated pricing benchmark model. To exclude extreme luxury penthouse outliers while establishing a realistic upper market baseline, the pricing algorithm requires identifying the distinct second-highest property price listed in the city.
 
 ---
 
 ## 📊 Sample Mock Table (`properties`)
 
 | property_id | property_title | city | price | bhk |
-| :--- | :--- | :--- | :--- | :--- |
+| :---: | :--- | :--- | :---: | :---: |
 | 101 | Prestige Villa | Bangalore | 45000000.00 | 4 |
 | 102 | Sobha Penthouse | Bangalore | 45000000.00 | 4 |
 | 103 | Brigade Heights | Bangalore | 28000000.00 | 3 |
@@ -28,7 +29,7 @@
 ## 🎯 Expected Output Table
 
 | second_highest_price |
-| :--- |
+| :---: |
 | 28000000.00 |
 
 ---
@@ -45,18 +46,29 @@ LIMIT 1 OFFSET 1;
 
 ---
 
-## ⚙️ Execution Logic (Saral Bhasha Me)
-General Nth value formula hota hai: $\mathbf{LIMIT \ 1 \ OFFSET \ (N - 1)}$. 2nd highest ke liye pehla record skip kiya (`OFFSET 1`) aur agla 1 record utha liya (`LIMIT 1`). `DISTINCT` duplicates ko pehle merge karta hai.
+## ⚙️ Execution Logic & Query Lifecycle
+1. **Deduplication**: `DISTINCT price` consolidates duplicate values before ranking.
+2. **Sorting**: Orders unique prices in descending order.
+3. **Offset & Limit**: The mathematical formula for the Nth highest value is $\mathbf{LIMIT \ 1 \ OFFSET \ (N - 1)}$. Skipping 1 row (`OFFSET 1`) and fetching 1 row (`LIMIT 1`) retrieves the exact second-highest benchmark.
 
 ---
 
-## ⚠️ Interviewer Trap Question
-*"Agar table mein Top 2 properties ka price exact barabar (jaise dono 4.5 Cr) ho, aur tumne `DISTINCT` nahi lagaya toh kya output aayega? Aur agar table mein Bangalore city ka sirf 1 hi flat ho, toh `LIMIT 1 OFFSET 1` kya return karega?"*
+## ⚠️ Common Interview Traps & Edge Cases
+1. **The Duplicate Rank Trap**:
+   - Both Prestige Villa and Sobha Penthouse are priced at 4.5 Cr. Without `DISTINCT`, `OFFSET 1` would erroneously return 4.5 Cr again rather than the true second-highest tier (2.8 Cr).
+2. **Empty Result Set vs NULL (LeetCode 176 Trap)**:
+   - If the dataset contains fewer than $N$ qualifying records, `LIMIT 1 OFFSET 1` returns an empty set (0 rows). To guarantee returning a single row containing `NULL`, encapsulate the query within an outer scalar `SELECT`:
+     ```sql
+     SELECT (
+         SELECT DISTINCT price 
+         FROM properties 
+         WHERE city = 'Bangalore' 
+         ORDER BY price DESC 
+         LIMIT 1 OFFSET 1
+     ) AS second_highest_price;
+     ```
 
 ---
 
-## 💬 Candidate ka Perfect Jabab (1-2 Yrs Experience Style)
-> *"Sir, agar `DISTINCT` nahi lagaya toh top rank par dono duplicate records honge, aur `OFFSET 1` skip karne par wo wapas 4.5 Cr hi return karega, jo ki actual second highest price nahi balki highest price ka duplicate hoga. Isliye `DISTINCT` lagana compulsory hai.*  
-> *Doosra trap: agar table mein sirf 1 hi record ho, toh `LIMIT 1 OFFSET 1` empty set (0 rows) return karta hai. Par LeetCode aur enterprise standard interview mein unhe single row with `NULL` chahiye hota hai. Uske liye hum query ko outer scalar SELECT mein wrap karte hain:*  
-> `SELECT (SELECT DISTINCT price FROM properties WHERE city = 'Bangalore' ORDER BY price DESC LIMIT 1 OFFSET 1) AS second_highest_price;`*  
-> *Isse agar koi record nahi hoga toh automatically single row NULL return hogi."*
+## 💬 Candidate's Defense (1–2 Years Experience Style)
+> *"Retrieving the true Nth highest metric requires pre-aggregating duplicates via `DISTINCT` to avoid returning redundant duplicate values. Wrapping the paginated query inside an outer scalar projection ensures that if fewer than N records exist, the database gracefully returns a single row with NULL rather than an empty result set."*
