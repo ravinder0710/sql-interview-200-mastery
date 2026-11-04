@@ -34,4 +34,19 @@
   > *"`<>` is the strict ANSI standard for inequality. If the column allows NULLs and we want unassigned rows included, we must explicitly write `(status <> 'Delivered' OR status IS NULL)`."*
 
 ---
+
+### 🔹 Q003: Set Membership (`IN`) & Inclusive Range (`BETWEEN`)
+* **Syntax / Formula**:
+  ```sql
+  SELECT col1, col2 FROM table_name 
+  WHERE category IN ('A', 'B') 
+    AND price BETWEEN low AND high 
+    AND stock > 0;
+  ```
+* **Interviewer Trap**:
+  * Forgetting that `BETWEEN low AND high` is **inclusive** on both boundaries (`>= low AND <= high`).
+* **Interviewer Ko Kya Bolna Hai (Interview Answer)**:
+  > *"`IN ('A', 'B')` is preferred over multiple OR statements for readability and optimizer hash lookups. Both `IN` and `BETWEEN` are SARGable and allow B-Tree index range scans."*
+
+---
 *(Updates live after each solved question!)*
