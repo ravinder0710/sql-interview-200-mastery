@@ -1,14 +1,14 @@
-# Q002: Undelivered Orders & The Famous NULL Trap
+# Q002: String Inequality (`<>` / `!=`) & The Famous NULL Trap
 
 ## 📌 Metadata
 - **Module:** Block 01: Foundations & Data Filtering
 - **Question Number:** 002 / 200
-- **Target Role:** Data Analyst (0 — 2 Years Experience)
+- **Target Role:** Data Analyst / SQL Developer (0 — 2 Years Experience)
 
 ---
 
-## 🏢 Business Scenario (Interviewer ki Zubaan Me)
-"Operations team ko dekhna hai ki online payment wale kitne orders abhi tak Deliver nahi hue (jaise In-Transit, Cancelled ya Pending) taaki unka delivery follow-up kiya ja sake."
+## 🏢 Business Scenario (Interviewer Context)
+"E-commerce logistics operations mein hume un sabhi prepaid (Online) orders ko track karna hai jo abhi tak customer tak deliver nahi hue hain (jaise Pending, Shipped, Processing, etc.) taaki dispatch team delayed orders par proactive action le sake."
 
 ---
 
@@ -16,12 +16,12 @@
 
 | order_id | customer_name | order_status | payment_type | order_amount |
 | :--- | :--- | :--- | :--- | :--- |
-| 1001 | Rahul Sen | Delivered | Online | 1200.00 |
-| 1002 | Meera Nair | In-Transit | Online | 2500.00 |
-| 1003 | Arjun Kapoor | Cancelled | COD | 800.00 |
-| 1004 | Swati Singh | Pending | Online | 3400.00 |
-| 1005 | Vikas Jain | Delivered | COD | 1500.00 |
-| 1006 | Priya Dhar | Returned | Online | 2100.00 |
+| 501 | Rahul Sen | Delivered | Online | 1499.00 |
+| 502 | Kavita Rao | Shipped | Online | 2999.00 |
+| 503 | Anuj Jain | Pending | Cash | 850.00 |
+| 504 | Manisha Roy | Delivered | Cash | 1200.00 |
+| 505 | Deepak Varma | Processing | Online | 4500.00 |
+| 506 | Sonal Gill | Cancelled | Online | 999.00 |
 
 ---
 
@@ -29,9 +29,9 @@
 
 | order_id | customer_name | order_status | order_amount |
 | :--- | :--- | :--- | :--- |
-| 1002 | Meera Nair | In-Transit | 2500.00 |
-| 1004 | Swati Singh | Pending | 3400.00 |
-| 1006 | Priya Dhar | Returned | 2100.00 |
+| 502 | Kavita Rao | Shipped | 2999.00 |
+| 505 | Deepak Varma | Processing | 4500.00 |
+| 506 | Sonal Gill | Cancelled | 999.00 |
 
 ---
 
@@ -50,13 +50,16 @@ WHERE order_status <> 'Delivered'
 
 ---
 
-## 🗣️ Human Language Interview Defense & Traps
+## ⚙️ Execution Logic (Saral Bhasha Me)
+Query pehle `orders` table scan karti hai, `payment_type = 'Online'` check karti hai, aur `order_status <> 'Delivered'` ke through un records ko pass karti hai jinka status 'Delivered' nahi hai.
 
-* **Hume normal zubaan me kya bolna hai?**
-  "Sir, hum `WHERE order_status <> 'Delivered' AND payment_type = 'Online'` lagayenge. Isse Delivered wale chhod kar baaki sab orders filter ho jayenge."
+---
 
-* **⚠️ Interviewer ka Trap / Cross-Question:**
-  *"Maan lo kisi naye order ka status abhi system mein khali (NULL) pada hua hai. Kya wo tumhari is query mein aayega?"*
+## ⚠️ Interviewer Trap Question
+*"Maan lo ek naya order place hua jiska status system glitch ki wajah se abhi `NULL` reh gaya. Kya tumhari query us online order ko return karegi?"*
 
-* **🛡️ Trap ka Counter-Jawab:**
-  "Nahi sir, SQL mein NULL ka matlab 'unknown' hota hai, toh `<> 'Delivered'` use bhi list se bahar phek dega. Agar business ko wo orders bhi dekhne hain jinka status abhi enter nahi hua, toh hume query mein safe tareeke se likhna padega: `WHERE (order_status <> 'Delivered' OR order_status IS NULL)`."
+---
+
+## 💬 Candidate ka Perfect Jabab (1-2 Yrs Experience Style)
+> *"Nahi sir, SQL mein **Three-Valued Logic (3VL)** hoti hai—TRUE, FALSE, aur UNKNOWN. Jab hum kisi NULL value ko kisi string se compare karte hain (`NULL <> 'Delivered'`), toh uska result `UNKNOWN` aata hai.*  
+> *Kyunki `WHERE` clause sirf strictly `TRUE` rows ko aage filter karti hai, isliye NULL status wale orders silently drop ho jayenge. Production mein agar unassigned ya NULL status orders ko bhi lena ho, toh safe practice yeh hoti hai ki hum explicit `WHERE (order_status <> 'Delivered' OR order_status IS NULL)` likhein."*

@@ -1,14 +1,14 @@
-# Q005: Missing Commission & Bracket Trap (`IS NULL`, Brackets `()`)
+# Q005: Missing Data (`IS NULL`) & Operator Precedence (`AND` vs `OR`)
 
 ## 📌 Metadata
 - **Module:** Block 01: Foundations & Data Filtering
 - **Question Number:** 005 / 200
-- **Target Role:** Data Analyst (0 — 2 Years Experience)
+- **Target Role:** Data Analyst / SQL Developer (0 — 2 Years Experience)
 
 ---
 
-## 🏢 Business Scenario (Interviewer ki Zubaan Me)
-"Audit team un active sales reps ko dhoondh rahi hai jinki salary kam se kam 50,000 ho, lekin ya toh unka commission set nahi hua hai ya unka koi manager assign nahi hai."
+## 🏢 Business Scenario (Interviewer Context)
+"Sales HR Operations audit mein un active sales representatives ki list identify karni hai jinki base salary 50,000 ya usse zyada hai, lekin ya toh unka commission percentage set nahi hai (`commission_pct IS NULL`) ya unhe koi reporting manager assign nahi hua hai (`manager_id IS NULL`)."
 
 ---
 
@@ -16,13 +16,12 @@
 
 | rep_id | rep_name | salary | commission_pct | manager_id | is_active |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| 101 | Rohit Mehra | 55000.00 | NULL | 10 | TRUE |
-| 102 | Simran Kaur | 48000.00 | NULL | 10 | TRUE |
-| 103 | Varun Dhawan | 62000.00 | 0.15 | NULL | TRUE |
-| 104 | Alia Bhatt | 75000.00 | 0.20 | 12 | TRUE |
-| 105 | Sidharth M | 50000.00 | NULL | NULL | TRUE |
-| 106 | Kiara Advani | 58000.00 | 0.10 | 10 | FALSE |
-| 107 | Ranveer Singh | 52000.00 | 0.12 | 14 | TRUE |
+| 1 | Vijay Verma | 55000.00 | NULL | 10 | True |
+| 2 | Neha Sharma | 62000.00 | 0.15 | NULL | True |
+| 3 | Rahul Sen | 48000.00 | NULL | 10 | True |
+| 4 | Swati Das | 70000.00 | 0.20 | 12 | True |
+| 5 | Manish Rao | 52000.00 | NULL | NULL | False |
+| 6 | Pooja Joshi | 50000.00 | 0.10 | NULL | True |
 
 ---
 
@@ -30,9 +29,9 @@
 
 | rep_id | rep_name | salary | commission_pct | manager_id |
 | :--- | :--- | :--- | :--- | :--- |
-| 101 | Rohit Mehra | 55000.00 | NULL | 10 |
-| 103 | Varun Dhawan | 62000.00 | 0.15 | NULL |
-| 105 | Sidharth M | 50000.00 | NULL | NULL |
+| 1 | Vijay Verma | 55000.00 | NULL | 10 |
+| 2 | Neha Sharma | 62000.00 | 0.15 | NULL |
+| 6 | Pooja Joshi | 50000.00 | 0.10 | NULL |
 
 ---
 
@@ -53,13 +52,17 @@ WHERE salary >= 50000
 
 ---
 
-## 🗣️ Human Language Interview Defense & Traps
+## ⚙️ Execution Logic (Saral Bhasha Me)
+SQL evaluation precedence ke mutabiq `NOT` -> `AND` -> `OR` evaluate hota hai. Parentheses `(commission_pct IS NULL OR manager_id IS NULL)` lagane se OR condition isolate ho jati hai aur overall filters ke saath sahi correlate hoti hai.
 
-* **Hume normal zubaan me kya bolna hai?**
-  "Sir, hum `salary >= 50000 AND is_active = TRUE` ke saath `AND (commission_pct IS NULL OR manager_id IS NULL)` lagayenge. Dono missing fields ko pakadne ke liye `OR` ko brackets mein band karenge."
+---
 
-* **⚠️ Interviewer ka Trap / Cross-Question:**
-  *"Agar tum `(commission_pct IS NULL OR manager_id IS NULL)` ke aage-peeche ka bracket hata do, toh result par kya asar padega?"*
+## ⚠️ Interviewer Trap Question
+*"Agar tum `(commission_pct IS NULL OR manager_id IS NULL)` se parentheses `( )` hata do, toh query par kya asar padega? Kya output change hoga?"*
 
-* **🛡️ Trap ka Counter-Jawab:**
-  "Sir, SQL mein `AND` pehle chalta hai aur `OR` baad mein. Agar bracket hata diya, toh aisa koi bhi sales rep aa jayega jiska manager NULL ho — chahe uski salary 5,000 hi kyu na ho aur chahe wo inactive ho chuka ho! Isliye dono condition ko combine karne ke liye bracket lagana compulsory hai."
+---
+
+## 💬 Candidate ka Perfect Jabab (1-2 Yrs Experience Style)
+> *"Bilkul change hoga sir! SQL mein `AND` operator ki precedence `OR` se high hoti hai. Agar hum brackets hata denge, toh engine query ko aise execute karega:*  
+> `(salary >= 50000 AND is_active = TRUE AND commission_pct IS NULL) OR (manager_id IS NULL)`  
+> *Iska nateeja yeh hoga ki har wo employee jiska `manager_id` NULL hai, wo automatically output mein aa jayega—chahe uski salary 10,000 ho ya wo inactive (`is_active = FALSE`) ho! Isliye compound business logic mein brackets lagana mandatory hai taaki logic leak na ho."*

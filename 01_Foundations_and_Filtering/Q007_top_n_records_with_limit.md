@@ -1,14 +1,14 @@
-# Q007: Top 3 Songs (`LIMIT` / `TOP`)
+# Q007: Top-N Truncation & Dialects (`LIMIT`, `TOP`, `FETCH FIRST`)
 
 ## 📌 Metadata
 - **Module:** Block 01: Foundations & Data Filtering
 - **Question Number:** 007 / 200
-- **Target Role:** Data Analyst (0 — 2 Years Experience)
+- **Target Role:** Data Analyst / SQL Developer (0 — 2 Years Experience)
 
 ---
 
-## 🏢 Business Scenario (Interviewer ki Zubaan Me)
-"Music app ke billboard banner ke liye 2023 ya uske baad release hue sabse zyada sune gaye top 3 gaane nikaal kar do."
+## 🏢 Business Scenario (Interviewer Context)
+"Music streaming app analytics dashboard par year 2023 ya uske baad release hue Top 3 highest-streamed viral tracks ko banner display ke liye extract karna hai."
 
 ---
 
@@ -16,13 +16,12 @@
 
 | song_id | title | artist | release_year | total_streams |
 | :--- | :--- | :--- | :--- | :--- |
-| 1 | Kesariya | Arijit Singh | 2022 | 450000000 |
-| 2 | Chaleya | Arijit Singh | 2023 | 380000000 |
-| 3 | Apna Bana Le | Arijit Singh | 2022 | 310000000 |
-| 4 | Heeriye | Jasleen Royal | 2023 | 290000000 |
-| 5 | Satranga | Arijit Singh | 2023 | 240000000 |
-| 6 | Arjan Vailly | Bhupinder Babbal | 2023 | 190000000 |
-| 7 | O Maahi | Arijit Singh | 2024 | 180000000 |
+| 1 | Kesariya | Arijit Singh | 2022 | 850000000 |
+| 2 | Chaleya | Arijit Singh | 2023 | 620000000 |
+| 3 | Heeriye | Jasleen Royal | 2023 | 540000000 |
+| 4 | Apna Bana Le | Arijit Singh | 2022 | 710000000 |
+| 5 | Maan Meri Jaan | King | 2023 | 490000000 |
+| 6 | Jawan Title | Anirudh | 2023 | 310000000 |
 
 ---
 
@@ -30,9 +29,9 @@
 
 | song_id | title | artist | total_streams |
 | :--- | :--- | :--- | :--- |
-| 2 | Chaleya | Arijit Singh | 380000000 |
-| 4 | Heeriye | Jasleen Royal | 290000000 |
-| 5 | Satranga | Arijit Singh | 240000000 |
+| 2 | Chaleya | Arijit Singh | 620000000 |
+| 3 | Heeriye | Jasleen Royal | 540000000 |
+| 5 | Maan Meri Jaan | King | 490000000 |
 
 ---
 
@@ -52,14 +51,16 @@ LIMIT 3;
 
 ---
 
-## 🗣️ Human Language Interview Defense & Traps
+## ⚙️ Execution Logic (Saral Bhasha Me)
+Data pehle `release_year >= 2023` par filter hota hai, phir `ORDER BY total_streams DESC` ke zariye highest streams ke basis par sort hota hai, aur aakhri stage par `LIMIT 3` top 3 rows ko cut kar leta hai.
 
-* **Hume normal zubaan me kya bolna hai?**
-  "Sir, pehle `WHERE release_year >= 2023` se naye gaane filter karenge, fir unhe streams ke hisab se bade se chhota sort karenge `ORDER BY total_streams DESC`, aur aakhri mein `LIMIT 3` laga kar top 3 utha lenge."
+---
 
-* **⚠️ Interviewer ka Trap / Cross-Question:**
-  *"Agar 3rd aur 4th number ke gaane ke streams bilkul barabar hon (tie ho), toh `LIMIT 3` kisko dikhayega? Aur SQL Server mein ye kaise likhoge?"*
+## ⚠️ Interviewer Trap Question
+*"Agar 3rd aur 4th song ke total streams exact barabar (tie) ho gaye, toh `LIMIT 3` kya karega? Aur agar company SQL Server ya Oracle use kar rahi ho toh yeh query kaise likhoge?"*
 
-* **🛡️ Trap ka Counter-Jawab:**
-  "`LIMIT 3` bina kisi rule ke koi bhi ek utha lega sir, jo business ke hisab se unfair ho sakta hai. Production mein tie handle karne ke liye hum aage gaane ka ID ya release date laga dete hain, ya `DENSE_RANK()` use karte hain.
-  Aur SQL Server / MS Access mein `LIMIT` nahi chalta, wahan `SELECT TOP 3` likhte hain."
+---
+
+## 💬 Candidate ka Perfect Jabab (1-2 Yrs Experience Style)
+> *"Sir, `LIMIT 3` ties ko consider nahi karta, wo arbitrarily kisi ek record ko pick karega aur doosre tied song ko drop kar dega. Agar business chahti hai ki ties include hon, toh SQL Server mein `SELECT TOP 3 WITH TIES` use hota hai, aur standard ANSI SQL mein hum `DENSE_RANK()` window function use karte hain.*  
+> *Rahi baat alag databases ki: MySQL/PostgreSQL mein `LIMIT 3`, SQL Server (T-SQL) mein `SELECT TOP 3 ...`, aur Oracle / ANSI SQL:2008 mein standard syntax `OFFSET 0 ROWS FETCH FIRST 3 ROWS ONLY` likha jata hai."*

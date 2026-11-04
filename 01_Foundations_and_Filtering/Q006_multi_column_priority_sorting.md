@@ -1,14 +1,14 @@
-# Q006: Doctor Priority Sorting (`ORDER BY` Multi-column)
+# Q006: Multi-Column Priority Sorting & Tie-Breaking (`ORDER BY`)
 
 ## 📌 Metadata
 - **Module:** Block 01: Foundations & Data Filtering
 - **Question Number:** 006 / 200
-- **Target Role:** Data Analyst (0 — 2 Years Experience)
+- **Target Role:** Data Analyst / SQL Developer (0 — 2 Years Experience)
 
 ---
 
-## 🏢 Business Scenario (Interviewer ki Zubaan Me)
-"Hospital OPD mein waiting patients ki line lagani hai. Pehle doctor ke hisab se group ho, fir sabse emergency (high priority) patient pehle dekha jaye, aur agar do logon ki priority barabar ho toh jo pehle aaya wo pehle jaye."
+## 🏢 Business Scenario (Interviewer Context)
+"Hospital Emergency Room (ER) / OPD queue management system mein 'Waiting' status wale patients ki live triage queue display karni hai. Sorting logic hierarchical hona chahiye: pehle Doctor ID ascending, fir Emergency Priority Score descending (critical patients pehle), aur agar priority tie ho toh Arrival Time ascending (first-come first-served)."
 
 ---
 
@@ -16,13 +16,12 @@
 
 | appointment_id | patient_name | doctor_id | priority_score | appointment_time | status |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| 1 | Ramesh Yadav | 201 | 8 | 09:30:00 | Waiting |
-| 2 | Sunita Rao | 201 | 5 | 09:15:00 | Waiting |
-| 3 | Deepak Goyal | 201 | 8 | 09:10:00 | Waiting |
-| 4 | Anita Desai | 202 | 9 | 10:00:00 | Waiting |
-| 5 | Manoj Tiwari | 202 | 9 | 09:45:00 | Waiting |
-| 6 | Suresh Raina | 201 | 10 | 10:15:00 | Completed |
-| 7 | Geeta Bali | 202 | 4 | 09:20:00 | Waiting |
+| 1001 | Ramesh Gupta | 101 | 3 | 09:15:00 | Waiting |
+| 1002 | Sunita Sen | 102 | 5 | 09:20:00 | Waiting |
+| 1003 | Vikas Mehra | 101 | 5 | 09:30:00 | Waiting |
+| 1004 | Anita Roy | 101 | 5 | 09:10:00 | Waiting |
+| 1005 | Tarun Das | 102 | 4 | 09:05:00 | Completed |
+| 1006 | Meena Jain | 101 | 2 | 09:40:00 | Waiting |
 
 ---
 
@@ -30,12 +29,11 @@
 
 | appointment_id | patient_name | doctor_id | priority_score | appointment_time |
 | :--- | :--- | :--- | :--- | :--- |
-| 3 | Deepak Goyal | 201 | 8 | 09:10:00 |
-| 1 | Ramesh Yadav | 201 | 8 | 09:30:00 |
-| 2 | Sunita Rao | 201 | 5 | 09:15:00 |
-| 5 | Manoj Tiwari | 202 | 9 | 09:45:00 |
-| 4 | Anita Desai | 202 | 9 | 10:00:00 |
-| 7 | Geeta Bali | 202 | 4 | 09:20:00 |
+| 1004 | Anita Roy | 101 | 5 | 09:10:00 |
+| 1003 | Vikas Mehra | 101 | 5 | 09:30:00 |
+| 1001 | Ramesh Gupta | 101 | 3 | 09:15:00 |
+| 1006 | Meena Jain | 101 | 2 | 09:40:00 |
+| 1002 | Sunita Sen | 102 | 5 | 09:20:00 |
 
 ---
 
@@ -50,18 +48,24 @@ SELECT
     appointment_time 
 FROM patient_appointments 
 WHERE status = 'Waiting' 
-ORDER BY doctor_id ASC, priority_score DESC, appointment_time ASC;
+ORDER BY 
+    doctor_id ASC, 
+    priority_score DESC, 
+    appointment_time ASC;
 ```
 
 ---
 
-## 🗣️ Human Language Interview Defense & Traps
+## ⚙️ Execution Logic (Saral Bhasha Me)
+Hierarchical sorting engine primary key (`doctor_id`) se sort karta hai. Jab tak doctors distinct hain, agle columns inactive rehte hain. Jaise hi doctor same hota hai, engine `priority_score DESC` se rank karta hai. Agar score bhi tie ho jaye, tab `appointment_time ASC` final tie-breaker banata hai.
 
-* **Hume normal zubaan me kya bolna hai?**
-  "Sir, hum `WHERE status = 'Waiting'` lagayenge, aur sorting mein teen cheezein denge: `ORDER BY doctor_id ASC, priority_score DESC, appointment_time ASC`. Isse doctor-wise high score pehle aayega, aur tie hone par purana appointment pehle."
+---
 
-* **⚠️ Interviewer ka Trap / Cross-Question:**
-  *"Agar main `ORDER BY doctor_id, priority_score, appointment_time` likh doon bina ASC/DESC lagaye, toh kya hoga?"*
+## ⚠️ Interviewer Trap Question
+*"Kuch developers shortcut ke liye `ORDER BY 3, 4 DESC, 5` likh dete hain. Kya production code mein yeh safe practice hai? Aur agar `priority_score` kisi patient ka NULL ho toh wo kahan sort hoga?"*
 
-* **🛡️ Trap ka Counter-Jawab:**
-  "Sir, SQL by default sabko `ASC` (chhote se bada) maan leta hai. Toh emergency patient (score 10 wala) sabse aakhri mein chala jayega aur normal sardi-zukham (score 1 wala) pehle aa jayega. Isliye priority ke aage `DESC` likhna mandatory hai."
+---
+
+## 💬 Candidate ka Perfect Jabab (1-2 Yrs Experience Style)
+> *"Sir, production environment mein positional numbers (`ORDER BY 3, 4`) use karna strict anti-pattern hai. Kal ko agar team mein kisi ne SELECT list mein columns ka sequence badal diya, toh poori sorting bina kisi syntax error ke galat business columns par lag jayegi. Hamesha explicit column names hi likhne chahiye.*  
+> *Rahi baat NULL values ki, SQL dialect ke hisab se default behavior alag hota hai—MySQL aur SQL Server ASC order mein NULL ko sabse upar (NULLS FIRST) rakhte hain jabki PostgreSQL ASC mein NULL ko last mein rakhta hai. Consistent output ke liye standard SQL mein hum explicit `NULLS LAST` specify karte hain."*

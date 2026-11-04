@@ -1,14 +1,14 @@
-# Q003: Category List aur Budget Range (`IN`, `BETWEEN`)
+# Q003: Set Membership (`IN`) & Inclusive Range (`BETWEEN`)
 
 ## 📌 Metadata
 - **Module:** Block 01: Foundations & Data Filtering
 - **Question Number:** 003 / 200
-- **Target Role:** Data Analyst (0 — 2 Years Experience)
+- **Target Role:** Data Analyst / SQL Developer (0 — 2 Years Experience)
 
 ---
 
-## 🏢 Business Scenario (Interviewer ki Zubaan Me)
-"E-commerce website ke homepage par sale chalani hai. Sirf 'Electronics' aur 'Appliances' category ke wo products dikhao jinka price 1,000 se 10,000 ke beech ho aur stock mein kam se kam 1 item bacha ho."
+## 🏢 Business Scenario (Interviewer Context)
+"Retail e-commerce category managers festive promotion campaign launch kar rahe hain. Unhe 'Electronics' aur 'Appliances' categories ke mid-segment products (MRP between 1,000 and 10,000 inclusive) ki list chahiye jinka warehouse stock available ho (`stock_qty > 0`)."
 
 ---
 
@@ -16,13 +16,13 @@
 
 | product_id | product_name | category | price | stock_qty |
 | :--- | :--- | :--- | :--- | :--- |
-| 501 | Wireless Mouse | Electronics | 1200.00 | 15 |
-| 502 | Cotton T-Shirt | Fashion | 899.00 | 40 |
-| 503 | Microwave Oven | Appliances | 7500.00 | 8 |
-| 504 | Bluetooth Speaker | Electronics | 9999.00 | 0 |
-| 505 | Smart Watch | Electronics | 4500.00 | 25 |
-| 506 | Mixer Grinder | Appliances | 2800.00 | 12 |
-| 507 | Running Shoes | Footwear | 3200.00 | 10 |
+| 1 | Wireless Earbuds | Electronics | 2499.00 | 45 |
+| 2 | Cotton Bedsheet | Home | 899.00 | 120 |
+| 3 | Microwave Oven | Appliances | 7500.00 | 12 |
+| 4 | Smart Watch | Electronics | 12000.00 | 8 |
+| 5 | Electric Kettle | Appliances | 1000.00 | 25 |
+| 6 | Running Shoes | Footwear | 3499.00 | 60 |
+| 7 | Blender Grinder | Appliances | 4200.00 | 0 |
 
 ---
 
@@ -30,10 +30,9 @@
 
 | product_id | product_name | category | price | stock_qty |
 | :--- | :--- | :--- | :--- | :--- |
-| 501 | Wireless Mouse | Electronics | 1200.00 | 15 |
-| 503 | Microwave Oven | Appliances | 7500.00 | 8 |
-| 505 | Smart Watch | Electronics | 4500.00 | 25 |
-| 506 | Mixer Grinder | Appliances | 2800.00 | 12 |
+| 1 | Wireless Earbuds | Electronics | 2499.00 | 45 |
+| 3 | Microwave Oven | Appliances | 7500.00 | 12 |
+| 5 | Electric Kettle | Appliances | 1000.00 | 25 |
 
 ---
 
@@ -54,14 +53,16 @@ WHERE category IN ('Electronics', 'Appliances')
 
 ---
 
-## 🗣️ Human Language Interview Defense & Traps
+## ⚙️ Execution Logic (Saral Bhasha Me)
+Engine `category IN (...)` ke through matching rows check karta hai, `price BETWEEN 1000 AND 10000` inclusive filter lagata hai, aur `stock_qty > 0` se out-of-stock items ko eliminate karta hai.
 
-* **Hume normal zubaan me kya bolna hai?**
-  "Sir, multiple categories ke liye hum `category IN ('Electronics', 'Appliances')` use karenge, budget ke liye `price BETWEEN 1000 AND 10000`, aur out-of-stock hatane ke liye `stock_qty > 0` lagayenge."
+---
 
-* **⚠️ Interviewer ka Trap / Cross-Question:**
-  *"Agar kisi item ka price exact 1,000 ya exact 10,000 ho, toh kya `BETWEEN` use chhod dega? Aur `IN` ki jagah multiple `OR` kyu nahi likha?"*
+## ⚠️ Interviewer Trap Question
+*"Multiple `OR` likhne ke badle `IN` lagane ka database level par kya benefit hai? Aur agar kisi product ka price exact 1,000 ya 10,000 ho toh kya wo `BETWEEN` mein aayega?"*
 
-* **🛡️ Trap ka Counter-Jawab:**
-  "`BETWEEN` dono border values (1000 aur 10000) ko include karta hai sir, toh wo product zaroor aayega.
-  Aur multiple `OR` likhne se code lamba aur confuse karne wala ho jata hai, `IN` lagane se code saaf dikhta hai aur database bhi use fast search kar leta hai."
+---
+
+## 💬 Candidate ka Perfect Jabab (1-2 Yrs Experience Style)
+> *"Sir, `BETWEEN` ANSI SQL standard mein fully inclusive hota hai (`price >= 1000 AND price <= 10000`). Isliye 1,000 aur 10,000 dono boundaries result mein shamil rahengi.*  
+> *Doosri baat, multiple `OR` likhne ke bajaye `IN` operator use karne se SQL Query Optimizer internal **Hash Set Lookup** construct karta hai jo fast execution deta hai. Saath hi yeh ek **SARGable predicate** hai jo price column ke B-Tree Index Range Scan ko preserve rakhta hai."*

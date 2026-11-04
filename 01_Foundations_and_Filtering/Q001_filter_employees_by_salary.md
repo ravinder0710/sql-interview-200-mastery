@@ -1,14 +1,14 @@
-# Q001: Strict Numeric Boundary Filtering & Column Selection
+# Q001: Strict Numeric Boundary Filtering & Column Projection
 
 ## 📌 Metadata
 - **Module:** Block 01: Foundations & Data Filtering
 - **Question Number:** 001 / 200
-- **Target Role:** Data Analyst (0 — 2 Years Experience)
+- **Target Role:** Data Analyst / SQL Developer (0 — 2 Years Experience)
 
 ---
 
-## 🏢 Business Scenario (Interviewer ki Zubaan Me)
-"Company ko un employees ki list chahiye jinki monthly salary strictly 60,000 se zyada hai taaki unka higher tax slab check kiya ja sake. Report mein sirf zaroori details (ID, Name, Dept, Salary) chahiye."
+## 🏢 Business Scenario (Interviewer Context)
+"Company mein HR compensation audit ya annual appraisal review chal raha hai. Finance team ko un sabhi employees ki report chahiye jinki monthly salary strictly 60,000 se zyada hai. Output mein sirf business-critical columns (ID, Name, Dept, Salary) required hain."
 
 ---
 
@@ -49,14 +49,16 @@ WHERE salary > 60000;
 
 ---
 
-## 🗣️ Human Language Interview Defense & Traps
+## ⚙️ Execution Logic (Saral Bhasha Me)
+SQL engine pehle `FROM employees` table access karta hai. Fir `WHERE salary > 60000` condition evaluate karke 60k se kam aur barabar walo ko memory se drop karta hai. Aakhri mein `SELECT` clause sirf specific 4 columns fetch karti hai.
 
-* **Hume normal zubaan me kya bolna hai?**
-  "Sir, hum `employees` table se sirf 4 maange gaye columns select karenge aur `WHERE salary > 60000` lagayenge. Isse wahi employees aayenge jinki salary 60,000 se ek rupya bhi upar hai."
+---
 
-* **⚠️ Interviewer ka Trap / Cross-Question:**
-  *"Dataset mein ek employee ki salary exact 60,000 hai. Kya wo tumhari query mein aayega? Aur agar tum `SELECT *` likh dete toh kya dikkat hoti?"*
+## ⚠️ Interviewer Trap Question
+*"Maine dekha tumne `SELECT emp_id, emp_name...` explicit likha, agar tum yahan `SELECT *` likh dete toh kya problem hoti? Aur agar dataset mein salary exact 60,000 hui toh kya wo output mein aayegi?"*
 
-* **🛡️ Trap ka Counter-Jawab:**
-  "Nahi sir, kyunki aapne 'strictly greater than 60,000' bola tha, isliye humne `>` lagaya hai `>=` nahi, toh 60,000 wala banda filter ho jayega.
-  Aur `SELECT *` isliye nahi likha kyunki production database mein tables mein 50-60 columns hote hain. Faaltu columns load karne se server slow ho jata hai, isliye sirf wahi maango jo report mein chahiye."
+---
+
+## 💬 Candidate ka Perfect Jabab (1-2 Yrs Experience Style)
+> *"Sir, production database mein tables mein 40-50 columns hote hain. Agar hum `SELECT *` likhenge toh unnecessary disk I/O aur network bandwidth waste hogi. Specific columns specify karne se database optimizer **Covering Index (Index-Only Scan)** use karta hai jisse query 5-10 guna fast execute hoti hai.*  
+> *Rahi baat 60,000 ki, business requirement 'strictly greater than 60,000' thi, isliye maine `>` operator lagaya hai na ki `>=`. Toh exact 60,000 ki boundary value exclude rahegi aur audit report 100% accurate rahegi."*
