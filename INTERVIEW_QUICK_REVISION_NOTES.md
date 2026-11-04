@@ -20,4 +20,18 @@
   `FROM` $\rightarrow$ `WHERE` $\rightarrow$ `SELECT`.
 
 ---
+
+### 🔹 Q002: String Inequality (`<>` / `!=`) & The NULL Trap
+* **Syntax / Formula**:
+  ```sql
+  SELECT col1, col2 FROM table_name 
+  WHERE status_col <> 'Delivered' AND payment_type = 'Online';
+  ```
+* **Interviewer Trap (Most Important)**:
+  * In SQL Three-Valued Logic (`TRUE`, `FALSE`, `UNKNOWN`), `NULL <> 'Delivered'` yields `UNKNOWN` (treated as FALSE in `WHERE`).
+  * If a column has `NULL` values and you filter `WHERE status <> 'Delivered'`, **all NULL rows will be silently dropped!**
+* **Interviewer Ko Kya Bolna Hai (Interview Answer)**:
+  > *"`<>` is the strict ANSI standard for inequality. If the column allows NULLs and we want unassigned rows included, we must explicitly write `(status <> 'Delivered' OR status IS NULL)`."*
+
+---
 *(Updates live after each solved question!)*

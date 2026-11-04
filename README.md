@@ -5,7 +5,7 @@
 
 ![SQL Challenge](https://img.shields.io/badge/SQL-200_Questions_Challenge-blue.svg?style=for-the-badge&logo=postgresql)
 ![Role](https://img.shields.io/badge/Target_Role-Data_Analyst_%280--2_Years%29-orange.svg?style=for-the-badge)
-![Progress](https://img.shields.io/badge/Progress-1%2F200_%281%25%29-brightgreen.svg?style=for-the-badge)
+![Progress](https://img.shields.io/badge/Progress-2%2F200_%281%25%29-brightgreen.svg?style=for-the-badge)
 ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)
 
 <p align="center">
@@ -31,11 +31,11 @@ This repository documents **200 real-world, high-frequency interview questions**
 
 ---
 
-## 🗂️ Curriculum & Progress Tracker (1 / 200)
+## 🗂️ Curriculum & Progress Tracker (2 / 200)
 
 | Block | Topic / Category | Target | Completed | Progress |
 |---|---|:---:|:---:|:---|
-| **01** | **Foundations & Data Filtering** (`WHERE`, `LIKE`, `IN`, `BETWEEN`, `NULL`, `ORDER BY`, `LIMIT`, Math) | 15 | 1 | `[█░░░░░░░░░] 7%` |
+| **01** | **Foundations & Data Filtering** (`WHERE`, `LIKE`, `IN`, `BETWEEN`, `NULL`, `ORDER BY`, `LIMIT`, Math) | 15 | 2 | `[██░░░░░░░░] 13%` |
 | **02** | **String & Date Cleaning** (`CONCAT`, `UPPER`/`LOWER`, `SUBSTRING`, `DATEDIFF`, `DATEADD`) | 20 | 0 | `[░░░░░░░░░░] 0%` |
 | **03** | **Aggregations & Grouping** (`COUNT`, `SUM`, `AVG`, `GROUP BY`, `HAVING`, NULL traps) | 30 | 0 | `[░░░░░░░░░░] 0%` |
 | **04** | **Conditional Business Logic** (`CASE WHEN`, Bucketing, Conditional Aggregation) | 20 | 0 | `[░░░░░░░░░░] 0%` |
@@ -43,7 +43,7 @@ This repository documents **200 real-world, high-frequency interview questions**
 | **06** | **Subqueries & CTEs** (Scalar/Correlated Subqueries, `WITH` clause modular pipelines) | 25 | 0 | `[░░░░░░░░░░] 0%` |
 | **07** | **Window Functions & Ranking** (`ROW_NUMBER`, `RANK`, `DENSE_RANK`, `LAG`/`LEAD`, Running Totals)| 25 | 0 | `[░░░░░░░░░░] 0%` |
 | **08** | **Real Company Mock Sets & Case Studies** (Amazon, TCS, Accenture, FinTech case scenarios) | 15 | 0 | `[░░░░░░░░░░] 0%` |
-| **TOTAL** | **8 High-Impact Blocks** | **200** | **1** | **1 / 200 (1%)** |
+| **TOTAL** | **8 High-Impact Blocks** | **200** | **2** | **2 / 200 (1%)** |
 
 ---
 
@@ -52,7 +52,8 @@ This repository documents **200 real-world, high-frequency interview questions**
 | # | Question Title | Topic | Company Tags | Solution Link |
 |:---:|---|---|---|:---:|
 | **Q001** | Filter High Earners by Salary | Numeric Boundary & Column Projection | TCS, Infosys, Cognizant | [Q001 Solution ↗️](01_Foundations_and_Filtering/Q001_filter_employees_by_salary.sql) |
-| **Q002** | Undelivered Online Orders | Inequality (`<>`) & The NULL Trap | Amazon, Swiggy, Zomato | *In Progress* |
+| **Q002** | Undelivered Online Orders | Inequality (`<>`) & The NULL Trap | Amazon, Swiggy, Zomato | [Q002 Solution ↗️](01_Foundations_and_Filtering/Q002_filter_undelivered_online_orders.sql) |
+| **Q003** | Warehouse Promotional Catalog | Set Membership (`IN`) & Range (`BETWEEN`) | Flipkart, Amazon Inventory | *In Progress* |
 
 *(This index updates dynamically with every completed problem!)*
 
