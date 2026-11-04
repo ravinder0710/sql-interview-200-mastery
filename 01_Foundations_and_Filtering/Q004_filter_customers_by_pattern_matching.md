@@ -1,18 +1,14 @@
-# Q004: Customer Segmentation via Pattern Matching (LIKE, %, NOT LIKE)
+# Q004: Text Search & Wildcards (`LIKE '%...'`, `NOT LIKE`)
 
 ## 📌 Metadata
 - **Module:** Block 01: Foundations & Data Filtering
-- **Question Number:** 004 / 150
-- **Company Tag:** Salesforce / HubSpot / CRM Marketing Startups
+- **Question Number:** 004 / 200
 - **Target Role:** Data Analyst (0 — 2 Years Experience)
 
 ---
 
-## 🏢 Business Scenario
-A CRM marketing team is launching a promotional onboarding campaign. They need to extract genuine customer accounts:
-1. Customer name begins with the letter 'A' (`LIKE 'A%'`).
-2. Email domain belongs strictly to Gmail (`LIKE '%@gmail.com'`).
-3. Exclude internal QA, staging, and dummy accounts where email contains 'test' (`NOT LIKE '%test%'`).
+## 🏢 Business Scenario (Interviewer ki Zubaan Me)
+"Marketing team ko email campaign bhejna hai. Hume wo customers chahiye jinka naam 'A' se shuru hota ho, email Gmail ka ho, lekin kisi tester ya fake email (`test`) pe mail nahi jana chahiye."
 
 ---
 
@@ -20,13 +16,13 @@ A CRM marketing team is launching a promotional onboarding campaign. They need t
 
 | customer_id | customer_name | email | city |
 | :--- | :--- | :--- | :--- |
-| 301 | Amit Sharma | amit.sharma@gmail.com | Delhi |
-| 302 | Anjali Verma | anjali_test@gmail.com | Mumbai |
-| 303 | Rohit Kumar | rohit.k@gmail.com | Pune |
-| 304 | Aarti Patel | aarti.patel@yahoo.com | Ahmedabad |
-| 305 | Alok Gupta | alok.gupta@gmail.com | Kolkata |
-| 306 | Akash Roy | akash123@hotmail.com | Bangalore |
-| 307 | test_user | ajay.test@gmail.com | Chennai |
+| 1 | Aarav Sharma | aarav.sharma@gmail.com | Delhi |
+| 2 | Ananya Sen | ananya_test@gmail.com | Kolkata |
+| 3 | Rahul Verma | rahul.verma@yahoo.com | Mumbai |
+| 4 | Amit Patel | amit.patel@gmail.com | Ahmedabad |
+| 5 | Alok Gupta | test_alok@gmail.com | Bangalore |
+| 6 | Priya Nair | priya.nair@gmail.com | Chennai |
+| 7 | Ayush Mehta | ayush.mehta@outlook.com | Pune |
 
 ---
 
@@ -34,8 +30,8 @@ A CRM marketing team is launching a promotional onboarding campaign. They need t
 
 | customer_id | customer_name | email | city |
 | :--- | :--- | :--- | :--- |
-| 301 | Amit Sharma | amit.sharma@gmail.com | Delhi |
-| 305 | Alok Gupta | alok.gupta@gmail.com | Kolkata |
+| 1 | Aarav Sharma | aarav.sharma@gmail.com | Delhi |
+| 4 | Amit Patel | amit.patel@gmail.com | Ahmedabad |
 
 ---
 
@@ -55,11 +51,13 @@ WHERE customer_name LIKE 'A%'
 
 ---
 
-## 🧠 Interview Defense & Technical Takeaways
+## 🗣️ Human Language Interview Defense & Traps
 
-1. **Anchor Wildcard vs Leading Wildcard**:
-   - `LIKE 'A%'` anchors at the beginning and utilizes standard B-Tree index range scans.
-   - `LIKE '%@gmail.com'` contains a leading wildcard, forcing an engine-level table scan unless specialized trigram (`pg_trgm`) or functional expression indexes are configured.
+* **Hume normal zubaan me kya bolna hai?**
+  "Sir, naam ke liye `customer_name LIKE 'A%'`, Gmail confirm karne ke liye `email LIKE '%@gmail.com'`, aur fake emails hatane ke liye `email NOT LIKE '%test%'` lagayenge."
 
-2. **Negative Filtering (`NOT LIKE`)**:
-   - Eliminates false-positive test/staging accounts to protect email deliverability scores and reduce campaign spend.
+* **⚠️ Interviewer ka Trap / Cross-Question:**
+  *"Agar 1 crore customers ka data ho, toh `LIKE 'A%'` aur `LIKE '%@gmail.com'` mein se kaunsi line database ko slow kar sakti hai?"*
+
+* **🛡️ Trap ka Counter-Jawab:**
+  "`LIKE '%@gmail.com'` slow karegi sir. Kyunki uske aage `%` laga hai, database ko pata hi nahi string kahan se shuru ho rahi hai, toh use puri table ke har ek row ko check karna padega (Full Table Scan). Jabki `A%` mein pehla letter pata hai, toh database seedha 'A' pe jump kar sakta hai."

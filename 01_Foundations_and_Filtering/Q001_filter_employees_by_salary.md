@@ -1,15 +1,14 @@
-# Q001: Strict Numeric Boundary Filtering & Column Projection
+# Q001: Strict Numeric Boundary Filtering & Column Selection
 
 ## 📌 Metadata
 - **Module:** Block 01: Foundations & Data Filtering
-- **Question Number:** 001 / 150
-- **Company Tag:** TCS / Infosys / Cognizant / Retail Startups
+- **Question Number:** 001 / 200
 - **Target Role:** Data Analyst (0 — 2 Years Experience)
 
 ---
 
-## 🏢 Business Scenario
-The HR department requires a report of all employees earning a monthly salary strictly greater than 60,000. Display employee ID, employee name, department, and monthly salary.
+## 🏢 Business Scenario (Interviewer ki Zubaan Me)
+"Company ko un employees ki list chahiye jinki monthly salary strictly 60,000 se zyada hai taaki unka higher tax slab check kiya ja sake. Report mein sirf zaroori details (ID, Name, Dept, Salary) chahiye."
 
 ---
 
@@ -50,13 +49,14 @@ WHERE salary > 60000;
 
 ---
 
-## 🧠 Interview Defense & Technical Takeaways
+## 🗣️ Human Language Interview Defense & Traps
 
-1. **Column Projection vs `SELECT *`**:
-   - Selecting explicit columns avoids excessive disk and network I/O, allowing query optimizers to utilize covering indexes (Index-Only Scan).
+* **Hume normal zubaan me kya bolna hai?**
+  "Sir, hum `employees` table se sirf 4 maange gaye columns select karenge aur `WHERE salary > 60000` lagayenge. Isse wahi employees aayenge jinki salary 60,000 se ek rupya bhi upar hai."
 
-2. **Strict Inequality Boundary**:
-   - `salary > 60000` excludes boundary matches (e.g. 60,000.00), adhering strictly to business requirements.
+* **⚠️ Interviewer ka Trap / Cross-Question:**
+  *"Dataset mein ek employee ki salary exact 60,000 hai. Kya wo tumhari query mein aayega? Aur agar tum `SELECT *` likh dete toh kya dikkat hoti?"*
 
-3. **Logical Processing Phase**:
-   - `FROM` -> `WHERE` -> `SELECT`.
+* **🛡️ Trap ka Counter-Jawab:**
+  "Nahi sir, kyunki aapne 'strictly greater than 60,000' bola tha, isliye humne `>` lagaya hai `>=` nahi, toh 60,000 wala banda filter ho jayega.
+  Aur `SELECT *` isliye nahi likha kyunki production database mein tables mein 50-60 columns hote hain. Faaltu columns load karne se server slow ho jata hai, isliye sirf wahi maango jo report mein chahiye."

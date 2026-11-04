@@ -1,46 +1,42 @@
-# Q008: Nth Highest Value via Pagination (LIMIT 1 OFFSET N-1 with DISTINCT)
+# Q008: Second Highest Price (`DISTINCT`, `OFFSET`)
 
 ## 📌 Metadata
 - **Module:** Block 01: Foundations & Data Filtering
-- **Question Number:** 008 / 150
-- **Company Tag:** MagicBricks / 99acres / Housing Real Estate Analytics
+- **Question Number:** 008 / 200
 - **Target Role:** Data Analyst (0 — 2 Years Experience)
 
 ---
 
-## 🏢 Business Scenario
-A real estate analytics platform needs to determine the second highest unique property price in 'Bangalore' to benchmark luxury housing tiers without skew from maximum pricing outliers. 
-
-Retrieve exactly one column named `second_highest_price`.
+## 🏢 Business Scenario (Interviewer ki Zubaan Me)
+"Real-estate portal par Bangalore city ke andar sabse mehenge flat ke baad jo doosra sabse mehenga price hai wo pata karna hai."
 
 ---
 
 ## 📊 Sample Mock Table (`properties`)
 
-| property_id | property_name | city | price |
-| :--- | :--- | :--- | :--- |
-| 801 | Prestige Golfshire | Bangalore | 45000000.00 |
-| 802 | Godrej Woods | Noida | 38000000.00 |
-| 803 | Sobha Dream Acres | Bangalore | 45000000.00 |
-| 804 | Brigade Gateway | Bangalore | 32000000.00 |
-| 805 | DLF Magnolias | Gurgaon | 95000000.00 |
-| 806 | Purva Palm Beach | Bangalore | 28000000.00 |
-| 807 | Total Environment | Bangalore | 41000000.00 |
+| property_id | property_name | city | price | bhk |
+| :--- | :--- | :--- | :--- | :--- |
+| 101 | Prestige Palms | Bangalore | 18500000.00 | 3 |
+| 102 | Sobha Silicon | Bangalore | 24000000.00 | 4 |
+| 103 | Brigade Gateway | Bangalore | 24000000.00 | 4 |
+| 104 | Godrej Woods | Bangalore | 16000000.00 | 3 |
+| 105 | DLF Phase 5 | Gurgaon | 35000000.00 | 4 |
+| 106 | Purva Park | Bangalore | 13500000.00 | 2 |
 
 ---
 
 ## 🎯 Expected Output Table
 
-| second_highest_price |
+| price |
 | :--- |
-| 41000000.00 |
+| 18500000.00 |
 
 ---
 
 ## 💡 Production SQL Solution
 
 ```sql
-SELECT DISTINCT price AS second_highest_price 
+SELECT DISTINCT price 
 FROM properties 
 WHERE city = 'Bangalore' 
 ORDER BY price DESC 
@@ -49,14 +45,13 @@ LIMIT 1 OFFSET 1;
 
 ---
 
-## 🧠 Interview Defense & Technical Takeaways
+## 🗣️ Human Language Interview Defense & Traps
 
-1. **Deduplication before Offsetting**:
-   - Without `DISTINCT`, if multiple records share the maximum price, `OFFSET 1` returns the duplicate maximum price rather than the true second highest tier.
+* **Hume normal zubaan me kya bolna hai?**
+  "Sir, hum duplicate prices hatayenge `SELECT DISTINCT price`, Bangalore filter karenge, price ko descending sort karenge, aur `LIMIT 1 OFFSET 1` laga kar pehle ko skip karke doosra utha lenge."
 
-2. **Nth-Value Pagination Formula**:
-   - `ORDER BY col DESC LIMIT 1 OFFSET (N - 1)`.
+* **⚠️ Interviewer ka Trap / Cross-Question:**
+  *"Agar do alag-alag properties ka price same ho (jaise top dono 1.50 Crore ki hon), aur tumne `DISTINCT` na lagaya ho toh kya output aayega?"*
 
-3. **Scalar Subquery Wrapping for NULL Handling (LeetCode 176)**:
-   - When a dataset contains fewer than N records, `LIMIT 1 OFFSET (N-1)` returns an empty result set (0 rows).
-   - Wrapping the query in an outer `SELECT ( ... ) AS nth_val` forces the engine to return `NULL` when the subquery produces no rows.
+* **🛡️ Trap ka Counter-Jawab:**
+  "Sir, agar `DISTINCT` nahi lagaya toh 1.50 Crore hi do baar aa jayega, aur `OFFSET 1` doosre number pe bhi 1.50 Crore hi utha lega — jabki hume second highest price chahiye tha. Isliye duplicate price hatane ke liye `DISTINCT` lagana compulsory hai."

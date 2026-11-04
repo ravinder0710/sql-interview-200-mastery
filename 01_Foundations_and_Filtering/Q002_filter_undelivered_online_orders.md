@@ -1,15 +1,14 @@
-# Q002: String Inequality (<> / !=) & The Famous NULL Trap
+# Q002: Undelivered Orders & The Famous NULL Trap
 
 ## 📌 Metadata
 - **Module:** Block 01: Foundations & Data Filtering
-- **Question Number:** 002 / 150
-- **Company Tag:** Amazon / Swiggy / Zomato / E-Commerce Operations
+- **Question Number:** 002 / 200
 - **Target Role:** Data Analyst (0 — 2 Years Experience)
 
 ---
 
-## 🏢 Business Scenario
-A food delivery operations team needs to extract all non-delivered orders (Cancelled, In Transit, Pending) paid via 'Online' payment mode for tracking. Display order ID, customer name, order status, and order amount.
+## 🏢 Business Scenario (Interviewer ki Zubaan Me)
+"Operations team ko dekhna hai ki online payment wale kitne orders abhi tak Deliver nahi hue (jaise In-Transit, Cancelled ya Pending) taaki unka delivery follow-up kiya ja sake."
 
 ---
 
@@ -17,13 +16,12 @@ A food delivery operations team needs to extract all non-delivered orders (Cance
 
 | order_id | customer_name | order_status | payment_type | order_amount |
 | :--- | :--- | :--- | :--- | :--- |
-| 5001 | Vikas Jain | Delivered | Online | 450.00 |
-| 5002 | Meera Sen | Cancelled | Online | 1200.00 |
-| 5003 | Arjun Kapoor | In Transit | Online | 850.00 |
-| 5004 | Deepa Shah | In Transit | COD | 600.00 |
-| 5005 | Tarun Malik | Delivered | COD | 350.00 |
-| 5006 | Ritu Garg | Pending | Online | 990.00 |
-| 5007 | Manish Paul | Cancelled | COD | 510.00 |
+| 1001 | Rahul Sen | Delivered | Online | 1200.00 |
+| 1002 | Meera Nair | In-Transit | Online | 2500.00 |
+| 1003 | Arjun Kapoor | Cancelled | COD | 800.00 |
+| 1004 | Swati Singh | Pending | Online | 3400.00 |
+| 1005 | Vikas Jain | Delivered | COD | 1500.00 |
+| 1006 | Priya Dhar | Returned | Online | 2100.00 |
 
 ---
 
@@ -31,9 +29,9 @@ A food delivery operations team needs to extract all non-delivered orders (Cance
 
 | order_id | customer_name | order_status | order_amount |
 | :--- | :--- | :--- | :--- |
-| 5002 | Meera Sen | Cancelled | 1200.00 |
-| 5003 | Arjun Kapoor | In Transit | 850.00 |
-| 5006 | Ritu Garg | Pending | 990.00 |
+| 1002 | Meera Nair | In-Transit | 2500.00 |
+| 1004 | Swati Singh | Pending | 3400.00 |
+| 1006 | Priya Dhar | Returned | 2100.00 |
 
 ---
 
@@ -52,11 +50,13 @@ WHERE order_status <> 'Delivered'
 
 ---
 
-## 🧠 Interview Defense & Technical Takeaways
+## 🗣️ Human Language Interview Defense & Traps
 
-1. **The Three-Valued Logic NULL Trap**:
-   - In SQL, `NULL <> 'Delivered'` yields `UNKNOWN` (treated as FALSE in WHERE clause).
-   - If status allows NULLs and unassigned orders must be included, explicit `(order_status <> 'Delivered' OR order_status IS NULL)` is mandatory.
+* **Hume normal zubaan me kya bolna hai?**
+  "Sir, hum `WHERE order_status <> 'Delivered' AND payment_type = 'Online'` lagayenge. Isse Delivered wale chhod kar baaki sab orders filter ho jayenge."
 
-2. **ANSI Standard Inequality**:
-   - `<>` is the ANSI standard operator; `!=` is supported across PostgreSQL, MySQL, SQL Server, and Snowflake.
+* **⚠️ Interviewer ka Trap / Cross-Question:**
+  *"Maan lo kisi naye order ka status abhi system mein khali (NULL) pada hua hai. Kya wo tumhari is query mein aayega?"*
+
+* **🛡️ Trap ka Counter-Jawab:**
+  "Nahi sir, SQL mein NULL ka matlab 'unknown' hota hai, toh `<> 'Delivered'` use bhi list se bahar phek dega. Agar business ko wo orders bhi dekhne hain jinka status abhi enter nahi hua, toh hume query mein safe tareeke se likhna padega: `WHERE (order_status <> 'Delivered' OR order_status IS NULL)`."

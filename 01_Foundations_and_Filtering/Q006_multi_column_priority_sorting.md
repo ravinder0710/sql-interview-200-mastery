@@ -1,19 +1,14 @@
-# Q006: Multi-Column Sorting & Priority Queue Logic
+# Q006: Doctor Priority Sorting (`ORDER BY` Multi-column)
 
 ## 📌 Metadata
 - **Module:** Block 01: Foundations & Data Filtering
-- **Question Number:** 006 / 150
-- **Company Tag:** Apollo / Fortis / Hospital & Logistics Triage Systems
+- **Question Number:** 006 / 200
 - **Target Role:** Data Analyst (0 — 2 Years Experience)
 
 ---
 
-## 🏢 Business Scenario
-A hospital management system requires a real-time prioritized OPD waiting queue:
-1. Group appointments primarily by `doctor_id ASC`.
-2. Within each doctor, prioritize urgent cases first using `priority_score DESC` (Score 3 = Emergency, 2 = Urgent, 1 = Normal).
-3. If priority scores match, break the tie by earliest arrival (`appointment_time ASC`).
-4. Filter out any patients whose status is not 'Waiting'.
+## 🏢 Business Scenario (Interviewer ki Zubaan Me)
+"Hospital OPD mein waiting patients ki line lagani hai. Pehle doctor ke hisab se group ho, fir sabse emergency (high priority) patient pehle dekha jaye, aur agar do logon ki priority barabar ho toh jo pehle aaya wo pehle jaye."
 
 ---
 
@@ -21,13 +16,13 @@ A hospital management system requires a real-time prioritized OPD waiting queue:
 
 | appointment_id | patient_name | doctor_id | priority_score | appointment_time | status |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| 601 | Ramesh Gupta | 101 | 1 | 09:30:00 | Waiting |
-| 602 | Suman Lata | 102 | 3 | 10:15:00 | Waiting |
-| 603 | Geeta Sen | 101 | 3 | 10:00:00 | Waiting |
-| 604 | Arvind Rana | 101 | 1 | 09:15:00 | Waiting |
-| 605 | Mohan Lal | 102 | 2 | 09:45:00 | Completed |
-| 606 | Sunita Jain | 102 | 3 | 09:00:00 | Waiting |
-| 607 | Kapil Dev | 101 | 2 | 10:30:00 | Cancelled |
+| 1 | Ramesh Yadav | 201 | 8 | 09:30:00 | Waiting |
+| 2 | Sunita Rao | 201 | 5 | 09:15:00 | Waiting |
+| 3 | Deepak Goyal | 201 | 8 | 09:10:00 | Waiting |
+| 4 | Anita Desai | 202 | 9 | 10:00:00 | Waiting |
+| 5 | Manoj Tiwari | 202 | 9 | 09:45:00 | Waiting |
+| 6 | Suresh Raina | 201 | 10 | 10:15:00 | Completed |
+| 7 | Geeta Bali | 202 | 4 | 09:20:00 | Waiting |
 
 ---
 
@@ -35,11 +30,12 @@ A hospital management system requires a real-time prioritized OPD waiting queue:
 
 | appointment_id | patient_name | doctor_id | priority_score | appointment_time |
 | :--- | :--- | :--- | :--- | :--- |
-| 603 | Geeta Sen | 101 | 3 | 10:00:00 |
-| 604 | Arvind Rana | 101 | 1 | 09:15:00 |
-| 601 | Ramesh Gupta | 101 | 1 | 09:30:00 |
-| 606 | Sunita Jain | 102 | 3 | 09:00:00 |
-| 602 | Suman Lata | 102 | 3 | 10:15:00 |
+| 3 | Deepak Goyal | 201 | 8 | 09:10:00 |
+| 1 | Ramesh Yadav | 201 | 8 | 09:30:00 |
+| 2 | Sunita Rao | 201 | 5 | 09:15:00 |
+| 5 | Manoj Tiwari | 202 | 9 | 09:45:00 |
+| 4 | Anita Desai | 202 | 9 | 10:00:00 |
+| 7 | Geeta Bali | 202 | 4 | 09:20:00 |
 
 ---
 
@@ -54,21 +50,18 @@ SELECT
     appointment_time 
 FROM patient_appointments 
 WHERE status = 'Waiting' 
-ORDER BY 
-    doctor_id ASC, 
-    priority_score DESC, 
-    appointment_time ASC;
+ORDER BY doctor_id ASC, priority_score DESC, appointment_time ASC;
 ```
 
 ---
 
-## 🧠 Interview Defense & Technical Takeaways
+## 🗣️ Human Language Interview Defense & Traps
 
-1. **Multi-tier Sorting Mechanism**:
-   - Primary sort column handles initial partitioning. Subsequent columns evaluate strictly as tie-breakers when prior keys are identical.
+* **Hume normal zubaan me kya bolna hai?**
+  "Sir, hum `WHERE status = 'Waiting'` lagayenge, aur sorting mein teen cheezein denge: `ORDER BY doctor_id ASC, priority_score DESC, appointment_time ASC`. Isse doctor-wise high score pehle aayega, aur tie hone par purana appointment pehle."
 
-2. **Named References vs Positional References**:
-   - Avoid `ORDER BY 3 ASC, 4 DESC, 5 ASC`. Named references protect queries against schema column reordering bugs.
+* **⚠️ Interviewer ka Trap / Cross-Question:**
+  *"Agar main `ORDER BY doctor_id, priority_score, appointment_time` likh doon bina ASC/DESC lagaye, toh kya hoga?"*
 
-3. **Composite Indexing for ORDER BY**:
-   - A composite index on `(status, doctor_id, priority_score DESC, appointment_time)` allows the database to read pre-sorted index pages directly, bypassing in-memory filesort operators.
+* **🛡️ Trap ka Counter-Jawab:**
+  "Sir, SQL by default sabko `ASC` (chhote se bada) maan leta hai. Toh emergency patient (score 10 wala) sabse aakhri mein chala jayega aur normal sardi-zukham (score 1 wala) pehle aa jayega. Isliye priority ke aage `DESC` likhna mandatory hai."

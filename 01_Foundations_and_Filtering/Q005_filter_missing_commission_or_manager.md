@@ -1,17 +1,14 @@
-# Q005: Handling Missing Data (IS NULL) & Operator Precedence (AND over OR)
+# Q005: Missing Commission & Bracket Trap (`IS NULL`, Brackets `()`)
 
 ## 📌 Metadata
 - **Module:** Block 01: Foundations & Data Filtering
-- **Question Number:** 005 / 150
-- **Company Tag:** Infosys / Wipro / Payroll Compliance Audits
+- **Question Number:** 005 / 200
 - **Target Role:** Data Analyst (0 — 2 Years Experience)
 
 ---
 
-## 🏢 Business Scenario
-The HR payroll audit team requires a list of active sales representatives (`is_active = TRUE`) with a base salary of at least 50,000 (`salary >= 50000`) who have missing information in either their commission percentage (`commission_pct IS NULL`) or their reporting manager ID (`manager_id IS NULL`). 
-
-This audit report is critical to resolve missing incentive metrics and broken reporting lines prior to monthly payroll disbursement.
+## 🏢 Business Scenario (Interviewer ki Zubaan Me)
+"Audit team un active sales reps ko dhoondh rahi hai jinki salary kam se kam 50,000 ho, lekin ya toh unka commission set nahi hua hai ya unka koi manager assign nahi hai."
 
 ---
 
@@ -19,13 +16,13 @@ This audit report is critical to resolve missing incentive metrics and broken re
 
 | rep_id | rep_name | salary | commission_pct | manager_id | is_active |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| 401 | Rohan Mehra | 65000.00 | NULL | 10 | TRUE |
-| 402 | Simran Kaur | 55000.00 | 0.15 | NULL | TRUE |
-| 403 | Deepak Verma | 42000.00 | NULL | NULL | TRUE |
-| 404 | Neha Sharma | 70000.00 | 0.10 | 12 | TRUE |
-| 405 | Kabir Khan | 58000.00 | NULL | 10 | FALSE |
-| 406 | Divya Rao | 50000.00 | NULL | NULL | TRUE |
-| 407 | Rahul Joshi | 80000.00 | 0.20 | 10 | TRUE |
+| 101 | Rohit Mehra | 55000.00 | NULL | 10 | TRUE |
+| 102 | Simran Kaur | 48000.00 | NULL | 10 | TRUE |
+| 103 | Varun Dhawan | 62000.00 | 0.15 | NULL | TRUE |
+| 104 | Alia Bhatt | 75000.00 | 0.20 | 12 | TRUE |
+| 105 | Sidharth M | 50000.00 | NULL | NULL | TRUE |
+| 106 | Kiara Advani | 58000.00 | 0.10 | 10 | FALSE |
+| 107 | Ranveer Singh | 52000.00 | 0.12 | 14 | TRUE |
 
 ---
 
@@ -33,9 +30,9 @@ This audit report is critical to resolve missing incentive metrics and broken re
 
 | rep_id | rep_name | salary | commission_pct | manager_id |
 | :--- | :--- | :--- | :--- | :--- |
-| 401 | Rohan Mehra | 65000.00 | NULL | 10 |
-| 402 | Simran Kaur | 55000.00 | 0.15 | NULL |
-| 406 | Divya Rao | 50000.00 | NULL | NULL |
+| 101 | Rohit Mehra | 55000.00 | NULL | 10 |
+| 103 | Varun Dhawan | 62000.00 | 0.15 | NULL |
+| 105 | Sidharth M | 50000.00 | NULL | NULL |
 
 ---
 
@@ -56,16 +53,13 @@ WHERE salary >= 50000
 
 ---
 
-## 🧠 Interview Defense & Technical Takeaways
+## 🗣️ Human Language Interview Defense & Traps
 
-1. **Operator Precedence (AND over OR)**:
-   - In standard SQL logical processing, `AND` evaluates prior to `OR`.
-   - Without parentheses around `(commission_pct IS NULL OR manager_id IS NULL)`, the filter decomposes to `(salary >= 50000 AND is_active = TRUE AND commission_pct IS NULL) OR manager_id IS NULL`. This defect introduces low-salary or inactive employees into the output whenever `manager_id` is NULL.
+* **Hume normal zubaan me kya bolna hai?**
+  "Sir, hum `salary >= 50000 AND is_active = TRUE` ke saath `AND (commission_pct IS NULL OR manager_id IS NULL)` lagayenge. Dono missing fields ko pakadne ke liye `OR` ko brackets mein band karenge."
 
-2. **Three-Valued Logic & Equality with NULL**:
-   - `column = NULL` is invalid because NULL represents an unknown state rather than a concrete value; `NULL = NULL` evaluates to `UNKNOWN` (treated as FALSE in a WHERE filter).
-   - Use explicit predicate `IS NULL` or `IS NOT NULL`.
+* **⚠️ Interviewer ka Trap / Cross-Question:**
+  *"Agar tum `(commission_pct IS NULL OR manager_id IS NULL)` ke aage-peeche ka bracket hata do, toh result par kya asar padega?"*
 
-3. **Index Behavior on Nullable Columns**:
-   - PostgreSQL and SQL Server index NULL entries within B-Tree indexes.
-   - Oracle B-Trees do not index rows where all indexed columns are NULL, requiring bitmap indexes or composite indexes with non-null constants.
+* **🛡️ Trap ka Counter-Jawab:**
+  "Sir, SQL mein `AND` pehle chalta hai aur `OR` baad mein. Agar bracket hata diya, toh aisa koi bhi sales rep aa jayega jiska manager NULL ho — chahe uski salary 5,000 hi kyu na ho aur chahe wo inactive ho chuka ho! Isliye dono condition ko combine karne ke liye bracket lagana compulsory hai."
