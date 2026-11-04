@@ -3,8 +3,8 @@
 ## 📌 Metadata
 - **Module:** Block 01: Foundations & Data Filtering
 - **Question Number:** 002 / 200
-- **Company Tag:** Amazon, Swiggy, Zomato
-- **Target Role:** Data Analyst / SQL Developer (0 — 2 Years Experience)
+- **Difficulty:** Basic
+- **Target Role:** Data Analyst / SQL Developer (0–2 Years)
 
 ---
 
@@ -26,7 +26,7 @@ An e-commerce logistics operations team requires visibility into all active, pre
 
 ---
 
-## 🎯 Expected Output Table
+## 🎯 Expected Output
 
 | order_id | customer_name | order_status | order_amount |
 | :---: | :--- | :--- | :---: |
@@ -51,24 +51,28 @@ WHERE order_status <> 'Delivered'
 
 ---
 
-## ⚙️ Execution Logic & Query Lifecycle
-1. **`FROM` Phase**: Scans the `orders` table.
-2. **`WHERE` Phase**: Combines two predicates using logical `AND`:
-   - `order_status <> 'Delivered'` eliminates delivered orders.
-   - `payment_type = 'Online'` isolates prepaid transactions.
-3. **`SELECT` Phase**: Emits the designated operational attributes.
+## 🧠 Interview Defense & Technical Takeaways
 
----
+1. **Why `<>` instead of `!=`?**
+   - Both `<>` and `!=` are accepted in modern SQL engines, but `<>` is the official **ANSI SQL standard** operator for inequality. Writing `<>` ensures universal compatibility across Oracle, PostgreSQL, SQL Server, and MySQL.
 
-## ⚠️ Common Interview Traps & Edge Cases
-1. **Three-Valued Logic (3VL) & Silent NULL Elimination**:
-   - In SQL, comparisons involving `NULL` evaluate to `UNKNOWN` rather than `TRUE` or `FALSE`.
-   - If an order's status is `NULL` (e.g., due to an ingestion lag), `NULL <> 'Delivered'` yields `UNKNOWN`. Because `WHERE` filters only accept `TRUE`, these records are dropped silently.
-2. **Defensive Production Coding**:
-   - When missing or unassigned statuses must be included, always write:
+2. **Three-Valued Logic (3VL) Mechanics:**
+   - SQL implements three boolean states: `TRUE`, `FALSE`, and `UNKNOWN`.
+   - Any direct comparison against `NULL` (such as `NULL <> 'Delivered'`) evaluates to `UNKNOWN`.
+   - Since `WHERE` clauses strictly allow rows that evaluate to `TRUE`, rows with `NULL` status are dropped automatically.
+
+3. **Defensive Filtering Best Practice:**
+   - If business requirements dictate including unassigned or missing status orders, defensively write:
      `WHERE (order_status <> 'Delivered' OR order_status IS NULL)`.
 
 ---
 
-## 💬 Candidate's Defense (1–2 Years Experience Style)
-> *"In ANSI SQL, inequality operators like `<>` evaluate against Three-Valued Logic. Comparing any string literal to a NULL value results in `UNKNOWN`, causing the WHERE filter to discard those rows silently. In production data pipelines where newly ingested orders may carry a NULL status, we defensively encapsulate the condition as `(order_status <> 'Delivered' OR order_status IS NULL)` to prevent data loss."*
+## 🚨 Common Interview Traps & Defense
+
+1. **Trap: The Silent NULL Drop:**
+   - *Interviewer:* "If a newly placed order has an unassigned status (`order_status IS NULL`), will your query return it?"
+   - *Defense:* No. In SQL's Three-Valued Logic, `NULL <> 'Delivered'` yields `UNKNOWN`. Because `WHERE` filters accept only `TRUE`, NULL rows are silently eliminated. In production pipelines, we defensively use `(order_status <> 'Delivered' OR order_status IS NULL)`.
+
+2. **Trap: Multiple Status Exclusions:**
+   - *Interviewer:* "If you also needed to exclude 'Cancelled' orders, how would you structure the condition?"
+   - *Defense:* Use `order_status NOT IN ('Delivered', 'Cancelled')`. However, if the `NOT IN` subquery or list contains a `NULL`, the entire predicate evaluates to `UNKNOWN`. We must ensure the column or list is non-null.

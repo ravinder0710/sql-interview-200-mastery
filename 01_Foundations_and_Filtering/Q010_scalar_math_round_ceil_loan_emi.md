@@ -3,8 +3,8 @@
 ## 📌 Metadata
 - **Module:** Block 01: Foundations & Data Filtering
 - **Question Number:** 010 / 200
-- **Company Tag:** CRED, Paytm Lending
-- **Target Role:** Data Analyst / SQL Developer (0 — 2 Years Experience)
+- **Difficulty:** Intermediate
+- **Target Role:** Data Analyst / SQL Developer (0–2 Years)
 
 ---
 
@@ -25,7 +25,7 @@ A digital micro-lending platform generates loan servicing and amortization sched
 
 ---
 
-## 🎯 Expected Output Table
+## 🎯 Expected Output
 
 | loan_id | borrower_name | total_interest | total_repayment | monthly_emi |
 | :---: | :--- | :---: | :---: | :---: |
@@ -61,20 +61,28 @@ ORDER BY monthly_emi DESC;
 
 ---
 
-## ⚙️ Execution Logic & Query Lifecycle
-1. **CTE Modularization**: Isolates the interest calculation expression so it can be cleanly reused without code duplication.
-2. **Ceiling Math**: Applies `CEIL()` on the divided monthly obligation to eliminate under-recovery risks.
-3. **Ordering**: Prioritizes portfolios by largest monthly cash inflow.
+## 🧠 Interview Defense & Technical Takeaways
+
+1. **Why `CEIL()` over `ROUND()` for Installment Calculations?**
+   - In lending and banking algorithms, rounding installments down or using standard rounding creates cumulative fractional shortfalls over long tenures. `CEIL()` guarantees that total installment collections fully cover principal and accrued interest.
+
+2. **Common Table Expression (CTE) Decomposition:**
+   - Instead of duplicating long math formulas across multiple expressions, a CTE (`WITH` clause) modularizes calculation into distinct, readable layers.
+   - It separates data preparation from final presentation logic.
+
+3. **Rounding Function Differences:**
+   - `ROUND(val, 2)`: Standard arithmetic half-up rounding to 2 decimals.
+   - `CEIL(val)` / `CEILING(val)`: Smallest integer $\ge val$ (always rounds up).
+   - `FLOOR(val)`: Largest integer $\le val$ (always rounds down).
 
 ---
 
-## ⚠️ Common Interview Traps & Edge Cases
-1. **Why `CEIL()` over `ROUND()` in Financial Applications**:
-   - Applying standard rounding or `FLOOR()` creates fractional penny losses over a multi-year tenure (e.g., collecting ₹4,666.66 instead of ₹4,666.67 results in an aggregate shortfall at loan closure). `CEIL()` guarantees full principal and interest recovery.
-2. **Decomposition Benefit**:
-   - Breaking calculations into CTE layers eliminates deeply nested bracket clutter and makes complex financial SQL enterprise-ready.
+## 🚨 Common Interview Traps & Defense
 
----
+1. **Trap: Fractional Shortfall Risk:**
+   - *Interviewer:* "Why not use `ROUND((principal + interest) / tenure, 0)` for EMI calculation?"
+   - *Defense:* Standard rounding can round down (e.g., ₹4,666.49 becomes ₹4,666), resulting in the lender receiving less than the legally owed sum over the loan's lifetime. `CEIL()` protects against under-recovery.
 
-## 💬 Candidate's Defense (1–2 Years Experience Style)
-> *"Financial installment engines deploy `CEIL()` rather than standard rounding to guarantee that total realized collections never fall short of contracted principal and accrued interest. Implementing this logic via Common Table Expressions (CTEs) provides modular separation of concerns, eliminating redundant formula evaluation and significantly improving maintainability."*
+2. **Trap: CTE vs Subquery Performance:**
+   - *Interviewer:* "Does using a CTE slow down execution compared to writing everything in one single SELECT?"
+   - *Defense:* In modern SQL optimizers (PostgreSQL, SQL Server, MySQL 8+), non-recursive CTEs are inlined by the optimizer. They incur zero performance overhead while providing substantial maintainability and readability advantages.

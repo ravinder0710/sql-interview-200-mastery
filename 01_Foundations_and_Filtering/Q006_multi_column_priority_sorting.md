@@ -3,8 +3,8 @@
 ## 📌 Metadata
 - **Module:** Block 01: Foundations & Data Filtering
 - **Question Number:** 006 / 200
-- **Company Tag:** Hospital & Logistics Triage
-- **Target Role:** Data Analyst / SQL Developer (0 — 2 Years Experience)
+- **Difficulty:** Basic
+- **Target Role:** Data Analyst / SQL Developer (0–2 Years)
 
 ---
 
@@ -26,7 +26,7 @@ A hospital emergency room (ER) triage management system requires a live dashboar
 
 ---
 
-## 🎯 Expected Output Table
+## 🎯 Expected Output
 
 | appointment_id | patient_name | doctor_id | priority_score | appointment_time |
 | :---: | :--- | :---: | :---: | :---: |
@@ -57,21 +57,26 @@ ORDER BY
 
 ---
 
-## ⚙️ Execution Logic & Query Lifecycle
-1. **Primary Sort Key (`doctor_id ASC`)**: Groups patient queues by their consulting physician.
-2. **Secondary Sort Key (`priority_score DESC`)**: Ranks critical patients highest within each doctor's cohort.
-3. **Tertiary Tie-Breaker (`appointment_time ASC`)**: Resolves identical priority scores fairly based on arrival timestamp.
+## 🧠 Interview Defense & Technical Takeaways
+
+1. **Hierarchical Sorting Mechanics:**
+   - Multi-column `ORDER BY` evaluates sequentially. The engine sorts by the first key (`doctor_id`).
+   - Subsequent columns (`priority_score`, then `appointment_time`) act strictly as **tie-breakers** only when previous column values in adjacent rows are identical.
+
+2. **Positional Numbering Anti-Pattern:**
+   - Writing `ORDER BY 3, 4 DESC, 5` is an anti-pattern in production SQL. If any future schema deployment adjusts the column sequence in the `SELECT` list, the query silently sorts by the wrong business metrics. Always use explicit column names.
+
+3. **Performance Optimization with Composite Indexes:**
+   - On high-traffic queue systems, creating a composite index matching the sort criteria `(status, doctor_id, priority_score DESC, appointment_time)` eliminates expensive in-memory filesort operations.
 
 ---
 
-## ⚠️ Common Interview Traps & Edge Cases
-1. **Positional Numbering Anti-Pattern (`ORDER BY 3, 4 DESC, 5`)**:
-   - Referencing columns by integer positions creates silent production bugs if column orders in the `SELECT` projection are modified in future pipeline deployments.
-2. **NULL Value Sorting Across Engines**:
-   - In MySQL and SQL Server, `ASC` sorts `NULL` values first.
-   - In PostgreSQL and Oracle, `ASC` sorts `NULL` values last by default. Use explicit `NULLS LAST` for deterministic cross-engine consistency.
+## 🚨 Common Interview Traps & Defense
 
----
+1. **Trap: Positional References:**
+   - *Interviewer:* "Can we save typing by writing `ORDER BY 3, 4 DESC, 5`?"
+   - *Defense:* While syntactically valid, it is strongly discouraged in enterprise pipelines. Schema changes in projection order silently corrupt report sorting without throwing an error. Explicit column references ensure maintainability.
 
-## 💬 Candidate's Defense (1–2 Years Experience Style)
-> *"Multi-column sorting evaluates criteria sequentially, using secondary keys strictly as deterministic tie-breakers. Specifying explicit column identifiers rather than ordinal numbers is vital for maintainability and prevents pipeline breakage when underlying projection schemas evolve."*
+2. **Trap: NULL Handling in Sort Order:**
+   - *Interviewer:* "Where do NULL values appear when sorting in ASC order?"
+   - *Defense:* In MySQL and SQL Server, `ASC` places `NULL` values at the top (`NULLS FIRST`). In PostgreSQL and Oracle, `ASC` places `NULL` values at the bottom (`NULLS LAST`). For cross-platform consistency, specify `NULLS LAST` explicitly.

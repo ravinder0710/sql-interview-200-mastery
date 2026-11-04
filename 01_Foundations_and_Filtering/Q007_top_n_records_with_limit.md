@@ -3,8 +3,8 @@
 ## 📌 Metadata
 - **Module:** Block 01: Foundations & Data Filtering
 - **Question Number:** 007 / 200
-- **Company Tag:** Spotify, Netflix, YouTube
-- **Target Role:** Data Analyst / SQL Developer (0 — 2 Years Experience)
+- **Difficulty:** Basic
+- **Target Role:** Data Analyst / SQL Developer (0–2 Years)
 
 ---
 
@@ -26,7 +26,7 @@ A music streaming platform's analytics engineering team is building a curated ho
 
 ---
 
-## 🎯 Expected Output Table
+## 🎯 Expected Output
 
 | song_id | title | artist | total_streams |
 | :---: | :--- | :--- | :---: |
@@ -52,23 +52,28 @@ LIMIT 3;
 
 ---
 
-## ⚙️ Execution Logic & Query Lifecycle
-1. **Filter**: Isolates records meeting `release_year >= 2023`.
-2. **Order**: Ranks rows using in-memory Top-N Priority Heapsort.
-3. **Truncate**: Emits the first 3 records immediately upon reaching the limit threshold.
+## 🧠 Interview Defense & Technical Takeaways
 
----
+1. **Top-N Priority Heapsort Optimization:**
+   - When `ORDER BY` is paired with `LIMIT n` and backed by an index, the database engine does not sort the entire table in memory. It maintains a bounded priority queue (heap) of size $n$, yielding near-instantaneous execution.
 
-## ⚠️ Common Interview Traps & Edge Cases
-1. **The Non-Deterministic Tie Hazard**:
-   - If the 3rd and 4th songs share identical total stream counts, `LIMIT 3` drops one record arbitrarily without notice.
-   - When business logic requires including ties, use `TOP 3 WITH TIES` in T-SQL or window ranking functions (`DENSE_RANK()`) in ANSI SQL.
-2. **Dialect Compatibility Across RDBMS**:
+2. **Cross-Dialect Syntax Standards:**
    - **PostgreSQL / MySQL / SQLite**: `LIMIT 3`
    - **SQL Server (T-SQL)**: `SELECT TOP 3 ...`
-   - **Oracle / ANSI SQL:2008**: `OFFSET 0 ROWS FETCH NEXT 3 ROWS ONLY`
+   - **Oracle & ANSI SQL:2008**: `OFFSET 0 ROWS FETCH NEXT 3 ROWS ONLY`
+
+3. **Execution Order of `LIMIT`:**
+   - `LIMIT` executes as the final step in query lifecycle:
+     $$\mathbf{FROM} \longrightarrow \mathbf{WHERE} \longrightarrow \mathbf{SELECT} \longrightarrow \mathbf{ORDER\ BY} \longrightarrow \mathbf{LIMIT}$$
 
 ---
 
-## 💬 Candidate's Defense (1–2 Years Experience Style)
-> *"When backed by an index on the sort key, `LIMIT` enables a fast Top-N heapsort without sorting the full physical dataset. However, because standard `LIMIT` truncates ties arbitrarily, enterprise production pipelines handling rankings typically leverage analytical window functions like `DENSE_RANK()` to ensure deterministic fairness."*
+## 🚨 Common Interview Traps & Defense
+
+1. **Trap: Non-Deterministic Tie Truncation:**
+   - *Interviewer:* "What if the 3rd and 4th songs have identical streams? Which one does `LIMIT 3` return?"
+   - *Defense:* Standard `LIMIT` breaks ties non-deterministically. To include all tied contenders in standard ANSI SQL, we utilize window ranking functions such as `DENSE_RANK()`, or in SQL Server we use `TOP 3 WITH TIES`.
+
+2. **Trap: Omitting `ORDER BY`:**
+   - *Interviewer:* "What happens if you run `SELECT * FROM songs LIMIT 3` without an `ORDER BY`?"
+   - *Defense:* Relational databases treat tables as unordered mathematical sets. Without `ORDER BY`, the returned rows are non-deterministic and can vary on every execution depending on storage fragmentation or parallel scan order.

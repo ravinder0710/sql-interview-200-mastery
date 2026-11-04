@@ -3,8 +3,8 @@
 ## 📌 Metadata
 - **Module:** Block 01: Foundations & Data Filtering
 - **Question Number:** 009 / 200
-- **Company Tag:** Retail E-Commerce Unit Economics
-- **Target Role:** Data Analyst / SQL Developer (0 — 2 Years Experience)
+- **Difficulty:** Intermediate
+- **Target Role:** Data Analyst / SQL Developer (0–2 Years)
 
 ---
 
@@ -25,7 +25,7 @@ During end-of-month financial reconciliation, an e-commerce finance team needs t
 
 ---
 
-## 🎯 Expected Output Table
+## 🎯 Expected Output
 
 | item_id | item_name | net_revenue | profit |
 | :---: | :--- | :---: | :---: |
@@ -51,20 +51,27 @@ ORDER BY profit DESC;
 
 ---
 
-## ⚙️ Execution Logic & Query Lifecycle
-1. **Discount Factor**: Computes `(1 - discount_pct / 100.0)`.
-2. **Gross vs Net**: Multiplies quantity and unit price by the discount multiplier.
-3. **Margin Calculation**: Deducts total COGS (`cost_price * quantity`) to yield net profit.
+## 🧠 Interview Defense & Technical Takeaways
+
+1. **Integer Division Truncation Danger:**
+   - In SQL Server and PostgreSQL, dividing two integers (`15 / 100`) performs integer truncation, returning integer `0`.
+   - Always divide by a decimal literal like `100.0` to force floating-point/decimal evaluation.
+
+2. **Column Alias Scope of Visibility:**
+   - In standard SQL, expressions inside a `SELECT` clause are evaluated concurrently. An alias declared on one column cannot be referenced inside an adjacent column expression in the same `SELECT`.
+   - However, because `ORDER BY` executes after projection, aliases *can* be referenced inside `ORDER BY`.
+
+3. **Explicit Multiplication Syntax:**
+   - Unlike algebraic notation $(A)(B)$, SQL requires an explicit asterisk `*` between parenthesized terms: `(A) * (B)`.
 
 ---
 
-## ⚠️ Common Interview Traps & Edge Cases
-1. **The Integer Division Truncation Trap**:
-   - In SQL Server and PostgreSQL, dividing two integer types (`15 / 100`) truncates fractional components to integer zero (`0`). Using decimal literals (`100.0`) forces floating-point decimal division.
-2. **Column Alias Reusability in the Same `SELECT`**:
-   - Projections evaluate concurrently; an alias declared in column 3 (`net_revenue`) cannot be referenced inside column 4 within the same `SELECT`. For cleaner architecture, wrap in a CTE.
+## 🚨 Common Interview Traps & Defense
 
----
+1. **Trap: Why `100.0` over `100`?**
+   - *Interviewer:* "Why did you write `discount_pct / 100.0` instead of `/ 100`?"
+   - *Defense:* In many SQL dialects, integer division truncates fractions to zero. Writing `/ 100` would cause discounts to calculate as ₹0, severely inflating revenue and distorting financial reporting. `100.0` guarantees precise decimal math.
 
-## 💬 Candidate's Defense (1–2 Years Experience Style)
-> *"We enforce explicit decimal precision using literals like `100.0` to avoid catastrophic integer division truncation. Furthermore, because column aliases in standard ANSI SQL are not accessible within the same projection pass, modularizing calculations with CTEs prevents formula duplication and ensures cleaner maintainability."*
+2. **Trap: Reusing Aliases Inside SELECT:**
+   - *Interviewer:* "Can we write `profit = net_revenue - (cost_price * quantity)` inside the same SELECT?"
+   - *Defense:* No. SQL projection evaluates columns in parallel, so `net_revenue` is not yet available in the scope of other expressions. We either repeat the formula or modularize the query using a Common Table Expression (CTE).

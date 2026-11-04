@@ -3,8 +3,8 @@
 ## 📌 Metadata
 - **Module:** Block 01: Foundations & Data Filtering
 - **Question Number:** 001 / 200
-- **Company Tag:** TCS, Infosys, Cognizant
-- **Target Role:** Data Analyst / SQL Developer (0 — 2 Years Experience)
+- **Difficulty:** Basic
+- **Target Role:** Data Analyst / SQL Developer (0–2 Years)
 
 ---
 
@@ -26,7 +26,7 @@ During an annual HR compensation audit, the payroll and finance teams require a 
 
 ---
 
-## 🎯 Expected Output Table
+## 🎯 Expected Output
 
 | emp_id | emp_name | department | salary |
 | :---: | :--- | :--- | :---: |
@@ -50,20 +50,29 @@ WHERE salary > 60000;
 
 ---
 
-## ⚙️ Execution Logic & Query Lifecycle
-1. **`FROM` Phase**: The query engine accesses the `employees` table.
-2. **`WHERE` Phase**: The predicate `salary > 60000` evaluates each row against the numeric boundary, filtering out all values $\le 60000$.
-3. **`SELECT` Phase**: Only the 4 requested columns are projected into the final result set, avoiding unnecessary memory buffers.
+## 🧠 Interview Defense & Technical Takeaways
+
+1. **Why Explicit Column Projection over `SELECT *`?**
+   - In production tables containing 40+ columns, `SELECT *` forces expensive disk I/O, network latency, and memory buffer bloat.
+   - Specifying required columns allows the query optimizer to utilize a **Covering Index (Index-Only Scan)** directly from the B-Tree index pages without touching physical table blocks.
+
+2. **Strict Inequality vs Inclusive Boundary:**
+   - The condition `salary > 60000` guarantees strict threshold filtering, excluding boundary values such as 60,000.00.
+   - If the business asks for "at least 60,000", then `>=` is required. Precision in choosing `>` vs `>=` prevents payroll audit discrepancies.
+
+3. **SQL Query Processing Lifecycle:**
+   - SQL queries do not execute top-to-bottom. The logical execution order is:
+     $$\mathbf{FROM} \longrightarrow \mathbf{WHERE} \longrightarrow \mathbf{SELECT}$$
+   - The engine first locates the table, filters rows in memory, and only projects the required columns at the final step.
 
 ---
 
-## ⚠️ Common Interview Traps & Edge Cases
-1. **Strict Inequality vs Inclusive Boundary (`>` vs `>=`)**:
-   - The business requirement explicitly states *"strictly greater than 60,000"*. Using `>=` would incorrectly include Rajesh Kumar (`salary = 60000.00`), creating an audit discrepancy.
-2. **The `SELECT *` Production Risk**:
-   - In production tables containing 40+ columns, `SELECT *` forces the database engine to perform expensive disk reads and buffer pool bloat.
+## 🚨 Common Interview Traps & Defense
 
----
+1. **Trap: Production Use of `SELECT *`:**
+   - *Interviewer:* "Why not just write `SELECT *` if you want to quickly see all employee details in the report?"
+   - *Defense:* In enterprise databases with millions of rows, `SELECT *` bypasses index-only scans, inflates network payload, and breaks downstream applications if new schema columns are added later. Always project explicit columns.
 
-## 💬 Candidate's Defense (1–2 Years Experience Style)
-> *"In production environments, selecting explicit columns minimizes disk I/O and network payload, allowing the database query optimizer to leverage a **Covering Index (Index-Only Scan)** without reading the physical table pages. Furthermore, applying strict inequality (`> 60000`) guarantees that exact boundary matches such as 60,000.00 are excluded, strictly satisfying the compliance audit specification."*
+2. **Trap: Boundary Value Matching:**
+   - *Interviewer:* "An employee earns exactly 60,000. Does your query include or exclude them?"
+   - *Defense:* It strictly excludes them. The `>` operator filters out exact boundary matches. If the requirement was '60,000 and above', we would use `>= 60000`.

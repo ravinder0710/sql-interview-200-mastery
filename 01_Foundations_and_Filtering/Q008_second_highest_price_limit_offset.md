@@ -3,8 +3,8 @@
 ## 📌 Metadata
 - **Module:** Block 01: Foundations & Data Filtering
 - **Question Number:** 008 / 200
-- **Company Tag:** MagicBricks, 99acres
-- **Target Role:** Data Analyst / SQL Developer (0 — 2 Years Experience)
+- **Difficulty:** Intermediate
+- **Target Role:** Data Analyst / SQL Developer (0–2 Years)
 
 ---
 
@@ -26,7 +26,7 @@ A real estate valuation platform in Bangalore is creating an automated pricing b
 
 ---
 
-## 🎯 Expected Output Table
+## 🎯 Expected Output
 
 | second_highest_price |
 | :---: |
@@ -46,29 +46,27 @@ LIMIT 1 OFFSET 1;
 
 ---
 
-## ⚙️ Execution Logic & Query Lifecycle
-1. **Deduplication**: `DISTINCT price` consolidates duplicate values before ranking.
-2. **Sorting**: Orders unique prices in descending order.
-3. **Offset & Limit**: The mathematical formula for the Nth highest value is $\mathbf{LIMIT \ 1 \ OFFSET \ (N - 1)}$. Skipping 1 row (`OFFSET 1`) and fetching 1 row (`LIMIT 1`) retrieves the exact second-highest benchmark.
+## 🧠 Interview Defense & Technical Takeaways
+
+1. **The Nth Highest Mathematical Formula:**
+   - The general pagination formula to retrieve the Nth distinct record is:
+     $$\mathbf{LIMIT \ 1 \ OFFSET \ (N - 1)}$$
+   - To find the 2nd highest: `OFFSET 1` skips the top record, and `LIMIT 1` retrieves the immediately following record.
+
+2. **Why `DISTINCT` is Compulsory:**
+   - If two or more properties share the top price (e.g., both Prestige Villa and Sobha Penthouse are 4.5 Cr), sorting without `DISTINCT` causes `OFFSET 1` to return the duplicate 4.5 Cr instead of the true 2nd tier price (2.8 Cr).
+
+3. **Enterprise Robustness with Scalar Subqueries:**
+   - Wrapping the query in an outer `SELECT ( ... ) AS second_highest_price` guarantees returning a single row containing `NULL` if fewer than $N$ qualifying records exist, strictly satisfying edge cases.
 
 ---
 
-## ⚠️ Common Interview Traps & Edge Cases
-1. **The Duplicate Rank Trap**:
-   - Both Prestige Villa and Sobha Penthouse are priced at 4.5 Cr. Without `DISTINCT`, `OFFSET 1` would erroneously return 4.5 Cr again rather than the true second-highest tier (2.8 Cr).
-2. **Empty Result Set vs NULL (LeetCode 176 Trap)**:
-   - If the dataset contains fewer than $N$ qualifying records, `LIMIT 1 OFFSET 1` returns an empty set (0 rows). To guarantee returning a single row containing `NULL`, encapsulate the query within an outer scalar `SELECT`:
-     ```sql
-     SELECT (
-         SELECT DISTINCT price 
-         FROM properties 
-         WHERE city = 'Bangalore' 
-         ORDER BY price DESC 
-         LIMIT 1 OFFSET 1
-     ) AS second_highest_price;
-     ```
+## 🚨 Common Interview Traps & Defense
 
----
+1. **Trap: The Duplicate Rank Trap:**
+   - *Interviewer:* "What happens if both top properties are priced at 4.5 Cr and you omit `DISTINCT`?"
+   - *Defense:* The query would return 4.5 Cr again, which is a duplicate of the highest price rather than the distinct second highest. Pre-aggregating unique values via `DISTINCT` is essential.
 
-## 💬 Candidate's Defense (1–2 Years Experience Style)
-> *"Retrieving the true Nth highest metric requires pre-aggregating duplicates via `DISTINCT` to avoid returning redundant duplicate values. Wrapping the paginated query inside an outer scalar projection ensures that if fewer than N records exist, the database gracefully returns a single row with NULL rather than an empty result set."*
+2. **Trap: Empty Result Set vs NULL (LeetCode 176):**
+   - *Interviewer:* "If the table only contains 1 property in Bangalore, what does `LIMIT 1 OFFSET 1` return?"
+   - *Defense:* It returns an empty result set (0 rows). If an enterprise pipeline or interviewer expects a single-row `NULL`, we encapsulate it: `SELECT (SELECT DISTINCT price FROM properties WHERE city = 'Bangalore' ORDER BY price DESC LIMIT 1 OFFSET 1) AS second_highest_price;`.

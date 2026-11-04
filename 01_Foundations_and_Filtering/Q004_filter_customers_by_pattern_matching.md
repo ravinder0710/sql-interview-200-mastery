@@ -3,8 +3,8 @@
 ## 📌 Metadata
 - **Module:** Block 01: Foundations & Data Filtering
 - **Question Number:** 004 / 200
-- **Company Tag:** Salesforce, HubSpot, CRM
-- **Target Role:** Data Analyst / SQL Developer (0 — 2 Years Experience)
+- **Difficulty:** Basic
+- **Target Role:** Data Analyst / SQL Developer (0–2 Years)
 
 ---
 
@@ -26,7 +26,7 @@ A marketing growth team is preparing an automated promotional email broadcast. T
 
 ---
 
-## 🎯 Expected Output Table
+## 🎯 Expected Output
 
 | customer_id | customer_name | email | city |
 | :---: | :--- | :--- | :--- |
@@ -51,21 +51,29 @@ WHERE customer_name LIKE 'A%'
 
 ---
 
-## ⚙️ Execution Logic & Query Lifecycle
-1. **Prefix Matching**: `customer_name LIKE 'A%'` anchors the search at the initial character 'A'.
-2. **Domain Matching**: `email LIKE '%@gmail.com'` validates the ending domain.
-3. **Negative Filter**: `email NOT LIKE '%test%'` eliminates sandbox and test records.
+## 🧠 Interview Defense & Technical Takeaways
+
+1. **Wildcard Character Semantics:**
+   - `%` matches zero, one, or multiple arbitrary characters.
+   - `_` (underscore) matches exactly one single character placeholder.
+   - Combining `%` with negative operator `NOT LIKE` provides clean filtering against dummy data patterns.
+
+2. **Index Seek vs Full Table Scan:**
+   - `LIKE 'A%'` (trailing wildcard) is index-friendly. The database engine executes an **Index Range Seek** because the string's starting prefix is known.
+   - `LIKE '%@gmail.com'` (leading wildcard) invalidates standard B-Tree indexes because the string prefix is variable, forcing an expensive **Full Table Scan**.
+
+3. **Case Sensitivity Across Databases:**
+   - In MySQL and SQL Server, string comparisons are case-insensitive by default.
+   - In PostgreSQL, `LIKE` is case-sensitive; `ILIKE` must be used for case-insensitive matching.
 
 ---
 
-## ⚠️ Common Interview Traps & Edge Cases
-1. **Leading vs Trailing Wildcards & Index Invalidation**:
-   - `LIKE 'A%'` (trailing wildcard) can leverage standard B-Tree indexes via an **Index Seek** because the initial key prefix is fixed.
-   - `LIKE '%@gmail.com'` (leading wildcard) forces the query engine to perform an expensive **Full Table Scan** because the start of the string is non-deterministic.
-2. **Production Mitigation**:
-   - In production systems with millions of records, leading wildcard pattern matching is optimized using **Trigram Indexes (`pg_trgm`)** in PostgreSQL or Reverse Indexes.
+## 🚨 Common Interview Traps & Defense
 
----
+1. **Trap: Leading Wildcard Performance:**
+   - *Interviewer:* "On a table with 10 million rows, why will `email LIKE '%@gmail.com'` degrade performance?"
+   - *Defense:* Leading wildcards prevent B-Tree indexes from determining the starting seek location. The database must inspect every row via a Full Table Scan. In production, we optimize this using Trigram GIN indexes (`pg_trgm`) or Reverse String Indexes.
 
-## 💬 Candidate's Defense (1–2 Years Experience Style)
-> *"Prefix pattern matching such as `LIKE 'A%'` is index-friendly and executes via B-Tree Index Range Seeks. However, leading wildcard predicates like `LIKE '%@gmail.com'` prevent index lookups, necessitating a Full Table Scan. In high-volume production databases, we support leading wildcard searches through Trigram GIN indexes or full-text catalog indexing to ensure sub-second response times."*
+2. **Trap: Missing Wildcard on Domain Matching:**
+   - *Interviewer:* "What if someone wrote `email LIKE '@gmail.com'` without the leading `%`?"
+   - *Defense:* It would only match a literal string `@gmail.com` with zero preceding characters. The leading `%` is mandatory to capture the username prefix.
