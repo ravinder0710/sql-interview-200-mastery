@@ -353,4 +353,222 @@ ORDER BY monthly_emi DESC;
   * *Aapka Jawab:* *"Nahi sir, modern database optimizers non-recursive CTEs ko internally inline kar dete hain. Zero overhead ke saath hume modular aur readable code milta hai."*
 
 ---
-*(Curriculum continues with Q011 to Q015...)*
+
+## 📌 Q011: String Manipulation & Length Filtering (`CONCAT`, `UPPER`, `CHAR_LENGTH`)
+
+### 💡 Production SQL:
+```sql
+SELECT 
+    emp_id, 
+    UPPER(CONCAT(first_name, ' ', last_name)) AS full_name_upper, 
+    LOWER(CONCAT(first_name, '.', last_name, '@company.com')) AS work_email, 
+    CHAR_LENGTH(CONCAT(first_name, ' ', last_name)) AS name_length 
+FROM employee_onboarding 
+WHERE employment_type = 'Permanent' 
+  AND CHAR_LENGTH(CONCAT(first_name, ' ', last_name)) >= 10 
+ORDER BY name_length DESC;
+```
+
+### 🏢 Business Scenario (Interviewer kaise puchega & Aapko kya bolna hai):
+* **Interviewer:** *"HR on-boarding table me first_name aur last_name alag-alag aate hain. IT badge printing aur corporate email setup ke liye ek report banani hai: formal full name capital me ho, official email lowercase me ho, aur sirf un Permanent employees ko filter karna hai jinke naam ki length 10 ya usse zyada characters ho taaki badge margin test ho sake. Query kaise likhoge?"*
+* **Aapka Professional Jawab:**
+  > *"Sir, hum `CONCAT()` function use karke first aur last name ko space ke saath merge karenge, uppercase ke liye `UPPER()` aur lowercase email ke liye `LOWER()` lagayenge. Badge margin check ke liye `CHAR_LENGTH(...) >= 10` filter karenge aur highest length ke according descending order me sort kar denge."*
+
+### 🧠 Deep Concept (Jo dimag me clear hona chahiye):
+* **`CHAR_LENGTH()` vs `LENGTH()`:** `LENGTH()` storage bytes count karta hai, jabki `CHAR_LENGTH()` exact visual characters count karta hai. Multi-byte UTF-8 strings me `CHAR_LENGTH()` hamesha accurate character count deta hai.
+* **SQL Order of Operations:** `WHERE` clause `SELECT` projection se pehle chalta hai. Isliye `WHERE` clause me alias `name_length` direct use nahi ho sakta, wahan pura function expression evaluate karna padta hai.
+
+### 🚨 Common Interview Traps (Counter-Questions & IT Answers):
+* **Trap 1: NULL concatenation trap:**
+  * *Interviewer:* *"Agar kisi employee ka last_name NULL ho, toh concatenation par kya asar padega?"*
+  * *Aapka Jawab:* *"Sir, standard SQL pipe operator `||` ya `+` me agar koi ek value bhi NULL ho toh pura result NULL ban jata hai. Modern `CONCAT()` function NULL ko automatically empty string treat karta hai jisse data corrupt nahi hota. Safe side ke liye hum `COALESCE(last_name, '')` bhi use kar sakte hain."*
+* **Trap 2: WHERE clause me alias use karna:**
+  * *Interviewer:* *"WHERE condition me direct `WHERE name_length >= 10` kyu nahi likha?"*
+  * *Aapka Jawab:* *"Sir, SQL execution architecture me `WHERE` phase `SELECT` se pehle run hota hai. Is point par column alias create hi nahi hua hota, isliye alias likhne par 'Unknown Column' error aayega. Expression ko WHERE me repeat karna padta hai ya CTE use karni hoti hai."*
+
+---
+
+## 📌 Q012: String Parsing & Data Masking (`SUBSTRING`, `LEFT`, `RIGHT`)
+
+### 💡 Production SQL:
+```sql
+SELECT 
+    ticket_id, 
+    customer_name, 
+    CONCAT('XXXXXX', RIGHT(phone_number, 4)) AS masked_phone, 
+    LEFT(issue_code, 4) AS category_code, 
+    SUBSTRING(issue_code, 6, 4) AS issue_year 
+FROM customer_tickets 
+WHERE priority = 'High' 
+ORDER BY ticket_id ASC;
+```
+
+### 🏢 Business Scenario (Interviewer kaise puchega & Aapko kya bolna hai):
+* **Interviewer:** *"Customer support dashboard par PII compliance follow karni hai. Phone number ke sirf aakhri 4 digits show karne hain aage 'XXXXXX' mask karke. Saath hi alphanumeric code `BILL-2023-NET` se category code aur incident year parse karke report ready karni hai High priority tickets ke liye. Query kaise likhoge?"*
+* **Aapka Professional Jawab:**
+  > *"Sir, hum phone number ke last 4 digits `RIGHT(phone_number, 4)` se nikal kar `CONCAT('XXXXXX', ...)` karenge. Category ke liye `LEFT(issue_code, 4)` use karenge, aur year ke liye SQL ke 1-based indexing rule ke hisab se `SUBSTRING(issue_code, 6, 4)` lagakar filter aur sort kar denge."*
+
+### 🧠 Deep Concept (Jo dimag me clear hona chahiye):
+* **1-Based Indexing:** Python ya Java me indexing 0 se start hoti hai, par SQL me hamesha **1-based indexing** hoti hai. `BILL-2023-NET` me position 5 par hyphen `-` hai, aur position 6 se `2023` shuru hota hai.
+* **`LEFT()` & `RIGHT()`:** `LEFT(col, n)` shuru ke $n$ characters uthata hai, aur `RIGHT(col, n)` hamesha end ke $n$ characters extract karta hai chahe string kitni bhi lambi ho.
+
+### 🚨 Common Interview Traps (Counter-Questions & IT Answers):
+* **Trap 1: 0-based indexing slip:**
+  * *Interviewer:* *"Agar main `SUBSTRING(issue_code, 5, 4)` likh doon toh kya aayega?"*
+  * *Aapka Jawab:* *"Sir, SQL me indexing 1 se hoti hai, isliye 5th character hyphen `-` hai. Output me `-202` aa jayega jo galat year hai. Sahi position 6 hai."*
+* **Trap 2: Variable length delimiter parsing:**
+  * *Interviewer:* *"Agar category prefix variable length ho (jaise `ACCOUNTING-2023` vs `IT-2024`), toh fixed position 6 fail ho jayegi. Wahan kya use karoge?"*
+  * *Aapka Jawab:* *"Sir, dynamic delimiters ke liye hum `INSTR()` ya `CHARINDEX()` / `POSITION()` se hyphen ka index dhoondhte hain aur `SUBSTRING()` ke saath combine karte hain, ya fir `REGEXP_SUBSTR()` use karte hain."*
+
+---
+
+## 📌 Q013: String Cleansing & Normalization (`REPLACE`, `TRIM`, `UPPER`)
+
+### 💡 Production SQL:
+```sql
+SELECT 
+    address_id, 
+    customer_name, 
+    TRIM(raw_address) AS cleaned_address, 
+    REPLACE(UPPER(city_code), 'BLR', 'Bangalore') AS standard_city, 
+    pin_code 
+FROM customer_addresses 
+WHERE pin_code LIKE '56%' 
+ORDER BY address_id ASC;
+```
+
+### 🏢 Business Scenario (Interviewer kaise puchega & Aapko kya bolna hai):
+* **Interviewer:** *"Courier delivery system me customer address ke aage-piche extra spaces hain jisse label printing distort hoti hai. Saath hi city abbreviations (jaise `BLR`) ko official full name `Bangalore` banana hai un PIN codes ke liye jo `56%` se shuru hote hain. Clean SQL solution kaise design karoge?"*
+* **Aapka Professional Jawab:**
+  > *"Sir, hum `TRIM(raw_address)` se leading aur trailing spaces remove karenge. City abbreviation ko normalize karne ke liye `REPLACE(UPPER(city_code), 'BLR', 'Bangalore')` lagayenge taaki case-sensitivity ki wajah se match miss na ho, aur Bangalore PIN codes ke liye `WHERE pin_code LIKE '56%'` filter karenge."*
+
+### 🧠 Deep Concept (Jo dimag me clear hona chahiye):
+* **`TRIM()` Scope:** `TRIM()` sirf string ke shuru aur aakhir ke spaces hatata hai. Words ke beech ke spaces ko touch nahi karta.
+* **`REPLACE()` Case Sensitivity:** PostgreSQL aur Oracle me `REPLACE()` case-sensitive hota hai. Agar table me `BLR` hai aur function me `blr` likha, toh replace silently fail ho jayega. `UPPER()` wrap karna enterprise standard defensive coding hai.
+
+### 🚨 Common Interview Traps (Counter-Questions & IT Answers):
+* **Trap 1: Case-sensitivity in `REPLACE`:**
+  * *Interviewer:* *"PostgreSQL me `REPLACE(city_code, 'blr', 'Bangalore')` chalane par agar data 'BLR' ho toh kya hoga?"*
+  * *Aapka Jawab:* *"Sir, PostgreSQL me REPLACE strictly case-sensitive hota hai, isliye 'BLR' match nahi hoga aur string unreplaced reh jayegi. Cross-engine safe code ke liye hum `REPLACE(UPPER(city_code), 'BLR', 'Bangalore')` likhte hain."*
+* **Trap 2: Internal spaces cleaning:**
+  * *Interviewer:* *"Agar do words ke beech 4 extra spaces hon (`12th    Main`), kya `TRIM()` use remove karega?"*
+  * *Aapka Jawab:* *"Nahi sir, `TRIM()` sirf outer boundary spaces hatata hai. Internal extra spaces ko collapse karne ke liye regex function `REGEXP_REPLACE(col, '\s+', ' ')` use kiya jata hai."*
+
+---
+
+## 📌 Q014: Date Part Extraction & Temporal Filtering (`YEAR`, `MONTH`, `EXTRACT`)
+
+### 💡 Production SQL:
+```sql
+SELECT 
+    order_id, 
+    customer_name, 
+    YEAR(order_date) AS order_year, 
+    MONTH(order_date) AS order_month, 
+    DAY(order_date) AS order_day, 
+    order_amount 
+FROM customer_orders 
+WHERE payment_status = 'Paid' 
+  AND YEAR(order_date) = 2023 
+  AND MONTH(order_date) = 10 
+ORDER BY 
+    order_amount DESC, 
+    order_id ASC;
+```
+
+### 🏢 Business Scenario (Interviewer kaise puchega & Aapko kya bolna hai):
+* **Interviewer:** *"Retail finance audit team ko October 2023 Diwali campaign ke sabhi successful paid orders ki report chahiye jisme date se year, month aur day alag karke analysis ho sake aur sales amount ke hisab se sort ho. Kaise karoge?"*
+* **Aapka Professional Jawab:**
+  > *"Sir, hum `YEAR()`, `MONTH()`, aur `DAY()` functions use karke date breakdown karenge, `WHERE payment_status = 'Paid' AND YEAR(order_date) = 2023 AND MONTH(order_date) = 10` filter lagayenge, aur `order_amount DESC, order_id ASC` se multi-column tie-breaking sort karenge."*
+
+### 🧠 Deep Concept (Jo dimag me clear hona chahiye):
+* **SARGable vs Non-SARGable:** Column ko `WHERE YEAR(order_date) = 2023` me wrap karne se column non-SARGable ho jata hai aur database index bypass karke Full Table Scan karta hai.
+* **Production Index Optimization:** Index preservation ke liye production me range filter use karte hain:  
+  `WHERE order_date >= '2023-10-01' AND order_date < '2023-11-01'`.
+
+### 🚨 Common Interview Traps (Counter-Questions & IT Answers):
+* **Trap 1: Non-SARGable function call trap:**
+  * *Interviewer:* *"Agar 50 million rows par `order_date` par B-Tree index laga hai, toh `YEAR(order_date) = 2023` query slow kyu karega?"*
+  * *Aapka Jawab:* *"Sir, function wrap karne ki wajah se database optimizer index seek use nahi kar pata aur engine ko har row par function chala kar Full Table Scan karna padta hai. SARGable range `order_date >= '2023-10-01' AND order_date < '2023-11-01'` likhne se query index seek ke saath milliseconds me run hoti hai."*
+* **Trap 2: Datetime boundary issue in `BETWEEN`:**
+  * *Interviewer:* *"Agar column me time bhi store ho (e.g., `2023-10-31 22:30:00`), toh `BETWEEN '2023-10-01' AND '2023-10-31'` safe hai kya?"*
+  * *Aapka Jawab:* *"Nahi sir, `'2023-10-31'` midnight `00:00:00` evaluate hota hai, isliye 31 October ke din ke baki saare orders drop ho jayenge. Safe pattern hamesha half-open interval hota hai: `>= '2023-10-01' AND < '2023-11-01'`."*
+
+---
+
+## 📌 Q015: Date Difference & Recency SLA Analysis (`DATEDIFF`)
+
+### 💡 Production SQL:
+```sql
+SELECT 
+    shipment_id, 
+    tracking_no, 
+    courier_partner, 
+    DATEDIFF(delivered_date, shipped_date) AS delivery_days 
+FROM shipment_tracking 
+WHERE shipment_status = 'Delivered' 
+  AND DATEDIFF(delivered_date, shipped_date) > 5 
+ORDER BY 
+    delivery_days DESC, 
+    shipment_id ASC;
+```
+
+### 🏢 Business Scenario (Interviewer kaise puchega & Aapko kya bolna hai):
+* **Interviewer:** *"Courier fulfillment team ka delivery SLA 5 days ka hai. Unhe un sabhi Delivered orders ki report chahiye jinme SLA breach hua ho yaani delivery_days > 5, aur sabse zyada delayed orders pehle aayein. Kaise karoge?"*
+* **Aapka Professional Jawab:**
+  > *"Sir, hum `DATEDIFF(delivered_date, shipped_date)` se delivery turnaround days nikalenge, `WHERE shipment_status = 'Delivered' AND DATEDIFF(...) > 5` filter lagayenge taaki pending shipments exclude rahein aur strictly 5 din se zyada wale breach cases identify ho sakein."*
+
+### 🧠 Deep Concept (Jo dimag me clear hona chahiye):
+* **Cross-Dialect Differences:**
+  * **MySQL:** `DATEDIFF(end_date, start_date)` $\rightarrow$ Later date pehle aati hai.
+  * **SQL Server (T-SQL):** `DATEDIFF(day, start_date, end_date)` $\rightarrow$ Datepart interval aage hota hai aur start date pehle hoti hai.
+  * **PostgreSQL:** Direct date subtraction `(delivered_date - shipped_date)` integers days deta hai.
+
+### 🚨 Common Interview Traps (Counter-Questions & IT Answers):
+* **Trap 1: MySQL me parameters ulte likh dena:**
+  * *Interviewer:* *"MySQL me agar `DATEDIFF(shipped_date, delivered_date)` likh diya toh kya hoga?"*
+  * *Aapka Jawab:* *"Sir, MySQL date1 - date2 karta hai, isliye shipped date pehle likhne par negative number (e.g. -8) aa jayega aur `> 5` condition fail ho kar 0 rows degi. MySQL me end_date pehle aana mandatory hai."*
+* **Trap 2: In-transit orders par NULL calculation:**
+  * *Interviewer:* *"Jo orders abhi raaste me hain ('In Transit'), unka delivered_date NULL hai. Agar status filter na lagayein toh kya dikkat hogi?"*
+  * *Aapka Jawab:* *"Sir, NULL ke saath date difference evaluate karne par result NULL aata hai aur WHERE clause use drop kar deta hai, lekin report clarification ke liye explicit `shipment_status = 'Delivered'` lagana zaroori hai taaki in-progress shipments audit analysis me confuse na karein."*
+
+---
+
+# 🟢 BLOCK 2: STRING & DATE CLEANING (Q016 — Q035)
+
+---
+
+## 📌 Q016: Cleaning Inconsistent Phone Prefixes (`RIGHT`, `REPLACE`, `LENGTH`)
+
+### 💡 Production SQL:
+```sql
+SELECT 
+    user_id, 
+    full_name, 
+    RIGHT(REPLACE(raw_phone, '-', ''), 10) AS clean_phone, 
+    account_status 
+FROM user_profiles 
+WHERE account_status = 'Active' 
+  AND LENGTH(RIGHT(REPLACE(raw_phone, '-', ''), 10)) = 10 
+ORDER BY user_id ASC;
+```
+
+### 🏢 Business Scenario (Interviewer kaise puchega & Aapko kya bolna hai):
+* **Interviewer:** *"FinTech app signup table me users alag-alag format me phone number daal dete hain (+91, trunk zero 0, hyphens). SMS OTP gateway ke liye clean 10-digit number extract karna hai un Active accounts ke liye jinka number 10 digits ka ho. Kaise sanitize karoge?"*
+* **Aapka Professional Jawab:**
+  > *"Sir, hum `REPLACE(raw_phone, '-', '')` se pehle hyphens ko completely strip karenge. Uske baad `RIGHT(..., 10)` se last 10 digits extract karenge aur `WHERE account_status = 'Active' AND LENGTH(...) = 10` se filter karenge taaki corrupted short numbers drop ho sakein."*
+
+### 🧠 Deep Concept (Jo dimag me clear hona chahiye):
+* **Empty String `''` vs Space `' '`:** Hyphen ko space `' '` se replace karne par string ke beech me whitespace reh jata hai jisse 10-digit extraction corrupt ho jati hai. Empty string `''` digits ko seamlessly combine karta hai.
+* **`RIGHT()` Behavior on Short Strings:** Agar string 10 characters se chhoti ho (e.g. `'945612'`), toh `RIGHT(col, 10)` poori string return kar deta hai (error throw nahi karta). Isliye `LENGTH(...) = 10` lagana zaroori hai.
+
+### 🚨 Common Interview Traps (Counter-Questions & IT Answers):
+* **Trap 1: Short invalid numbers handle karna:**
+  * *Interviewer:* *"Agar user ne 6-digit number dala ho, toh RIGHT(col, 10) kya dega?"*
+  * *Aapka Jawab:* *"Sir, SQL me RIGHT function error throw nahi karta, balki poori 6-digit string hi return kar deta hai. Isliye validation filter `LENGTH(RIGHT(...)) = 10` lagana mandatory hota hai taaki truncated numbers reject ho jayein."*
+* **Trap 2: International country codes:**
+  * *Interviewer:* *"Kya RIGHT(..., 10) UK ya Europe ke numbers par chalega?"*
+  * *Aapka Jawab:* *"Nahi sir, yeh logic India ya US jaise 10-digit national dialing plan ke liye optimized hai. Global multi-country platforms par country code alag column me store karte hain aur E.164 standardization ke liye regex patterns use karte hain."*
+
+---
+*(Curriculum continues with Q017 to Q035...)*

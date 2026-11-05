@@ -5,7 +5,7 @@
 
 ![SQL Challenge](https://img.shields.io/badge/SQL-200_Questions_Challenge-blue.svg?style=for-the-badge&logo=postgresql)
 ![Role](https://img.shields.io/badge/Target_Role-Data_Analyst_%280--2_Years%29-orange.svg?style=for-the-badge)
-![Progress](https://img.shields.io/badge/Progress-10%2F200_%285%25%29-brightgreen.svg?style=for-the-badge)
+![Progress](https://img.shields.io/badge/Progress-16%2F200_%288%25%29-brightgreen.svg?style=for-the-badge)
 ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)
 
 <p align="center">
@@ -31,7 +31,7 @@ This repository documents **200 real-world, high-frequency interview questions**
 
 ---
 
-## 🗂️ Curriculum & Progress Tracker (10 / 200)
+## 🗂️ Curriculum & Progress Tracker (16 / 200)
 
 | Block | Topic / Category | Target | Completed | Progress |
 |---|---|:---:|:---:|:---|
@@ -61,7 +61,13 @@ This repository documents **200 real-world, high-frequency interview questions**
 | **Q008** | Second Highest Property Price | Pagination (`LIMIT 1 OFFSET N-1`) & Deduplication | MagicBricks, 99acres | [Q008 Solution ↗️](01_Foundations_and_Filtering/Q008_second_highest_price_limit_offset.md) |
 | **Q009** | Order Profitability Breakdown | Arithmetic Precedence & Integer Division Prevention | Retail E-Commerce Unit Economics | [Q009 Solution ↗️](01_Foundations_and_Filtering/Q009_calculated_columns_revenue_profit.md) |
 | **Q010** | Loan Amortization & EMI Schedule | Scalar Math (`ROUND`, `CEIL`) & CTE Decomposition | CRED, Paytm Lending | [Q010 Solution ↗️](01_Foundations_and_Filtering/Q010_scalar_math_round_ceil_loan_emi.md) |
-| **Q011** | Employee Onboarding Badge Profile | String Formatting (`CONCAT`, `UPPER`, `LENGTH`) | Accenture, Wipro, HR IT | *In Progress* |
+| **Q011** | Employee Onboarding Badge Profile | String Formatting (`CONCAT`, `UPPER`, `LENGTH`) | Accenture, Wipro, HR IT | [Q011 Solution ↗️](01_Foundations_and_Filtering/Q011_employee_badge_and_email_formatting.md) |
+| **Q012** | String Parsing & Data Masking | String Extraction (`SUBSTRING`, `LEFT`, `RIGHT`) | Swiggy, Paytm, Telecom | [Q012 Solution ↗️](01_Foundations_and_Filtering/Q012_string_extraction_substring_left_right.md) |
+| **Q013** | String Cleansing & Normalization | String Cleaning (`REPLACE`, `TRIM`, `UPPER`) | Amazon, Uber, Logistics | [Q013 Solution ↗️](01_Foundations_and_Filtering/Q013_string_cleaning_replace_trim.md) |
+| **Q014** | Date Part Extraction & Temporal Filtering | Date Functions (`YEAR`, `MONTH`, `DAY`, `EXTRACT`) | Flipkart, Zomato, Retail | [Q014 Solution ↗️](01_Foundations_and_Filtering/Q014_date_parts_extraction_year_month_day.md) |
+| **Q015** | Date Difference & Recency SLA Analysis | Date Math (`DATEDIFF`, `CURRENT_DATE`) | Swiggy, Amazon, Logistics | [Q015 Solution ↗️](01_Foundations_and_Filtering/Q015_datediff_delivery_sla_breach.md) |
+| **Q016** | Cleaning Inconsistent Phone Prefixes | String Standardization (`RIGHT`, `REPLACE`, `LENGTH`) | Truecaller, FinTech, OTP | [Q016 Solution ↗️](02_String_and_Date_Cleaning/Q016_clean_phone_prefixes_and_hyphens.md) |
+| **Q017** | Email Username & Domain Separation | String Search & Splitting (`INSTR`, `SUBSTRING`) | Gmail, Marketing, HR | *In Progress* |
 
 ---
 
