@@ -571,4 +571,499 @@ ORDER BY user_id ASC;
   * *Aapka Jawab:* *"Nahi sir, yeh logic India ya US jaise 10-digit national dialing plan ke liye optimized hai. Global multi-country platforms par country code alag column me store karte hain aur E.164 standardization ke liye regex patterns use karte hain."*
 
 ---
-*(Curriculum continues with Q017 to Q035...)*
+
+## 📌 Q017: Dynamic String Delimiter Splitting (`INSTR`, `SUBSTRING`, `LEFT`)
+
+### 💡 Production SQL:
+```sql
+SELECT 
+    subscriber_id, 
+    full_name, 
+    LEFT(email_address, INSTR(email_address, '@') - 1) AS username, 
+    SUBSTRING(email_address, INSTR(email_address, '@') + 1) AS domain_name 
+FROM subscribers 
+WHERE is_verified = TRUE 
+ORDER BY subscriber_id ASC;
+```
+
+### 🏢 Business Scenario (Interviewer kaise puchega & Aapko kya bolna hai):
+* **Interviewer:** *"Marketing subscribers table me alag-alag length ke emails hain. Growth team ko domain distribution analyze karna hai. '@' delimiter locate karke username aur domain_name dynamically alag-alag columns me kaise extract karoge?"*
+* **Aapka Professional Jawab:**
+  > *"Sir, variable length strings ke liye hum `INSTR(email_address, '@')` se '@' ka dynamic 1-based index nikalenge. Username ke liye `LEFT(..., INSTR(...) - 1)` aur domain name ke liye `SUBSTRING(..., INSTR(...) + 1)` use karenge."*
+
+### 🧠 Deep Concept (Jo dimag me clear hona chahiye):
+* **Dynamic Offsets:** Static hardcoding fail ho jati hai variable emails me. `INSTR()` runtime par token position dhoondhta hai.
+* **Dialect Variations:** MySQL me `INSTR(str, substr)`, SQL Server me `CHARINDEX('@', str)`, aur PostgreSQL me `POSITION('@' IN str)`.
+
+### 🚨 Common Interview Traps (Counter-Questions & IT Answers):
+* **Trap 1: Missing '@' delimiter handling:**
+  * *Interviewer:* *"Agar dirty data me email me '@' na ho, toh INSTR kya dega aur query par kya asar padega?"*
+  * *Aapka Jawab:* *"Sir, delimiter na milne par INSTR() 0 return karta hai. Is case me `0 - 1 = -1` ban jayega jo runtime error ya empty string de sakta hai. Production me hum defensive filter `WHERE email_address LIKE '%@%'` add karte hain."*
+* **Trap 2: Substring without length parameter:**
+  * *Interviewer:* *"SUBSTRING me 3rd argument (length) pass kyu nahi kiya?"*
+  * *Aapka Jawab:* *"MySQL aur PostgreSQL me `SUBSTRING(str, start_pos)` bina length parameter ke us position se lekar end of string tak poora data slice kar leta hai, jo domain extraction ke liye perfect hai."*
+
+---
+
+## 📌 Q018: String to Date Conversion & Formatting (`STR_TO_DATE`, `DATE_FORMAT`)
+
+### 💡 Production SQL:
+```sql
+SELECT 
+    txn_id, 
+    customer_name, 
+    STR_TO_DATE(raw_txn_date, '%d/%m/%Y') AS standard_date, 
+    amount, 
+    txn_status 
+FROM legacy_transactions 
+WHERE txn_status = 'Success' 
+  AND STR_TO_DATE(raw_txn_date, '%d/%m/%Y') BETWEEN '2023-10-01' AND '2023-12-31' 
+ORDER BY 
+    standard_date DESC, 
+    txn_id ASC;
+```
+
+### 🏢 Business Scenario (Interviewer kaise puchega & Aapko kya bolna hai):
+* **Interviewer:** *"Legacy banking CSV feed se dates string text format 'DD/MM/YYYY' me aati hain. Agar direct text filter ya sort karein toh galat results aate hain. Audit ke liye Q4 2023 ke successful transactions extract karne hain. Date casting aur filtering kaise karoge?"*
+* **Aapka Professional Jawab:**
+  > *"Sir, string text dates alphabetical order me sort hoti hain, chronological order me nahi. Hum `STR_TO_DATE(raw_txn_date, '%d/%m/%Y')` use karke use true SQL Date data type me cast karenge aur `BETWEEN '2023-10-01' AND '2023-12-31'` se Q4 quarter filter karenge."*
+
+### 🧠 Deep Concept (Jo dimag me clear hona chahiye):
+* **Lexicographical vs Chronological:** String format `'28/09/2023'` ASCII value me `'15/10/2023'` se badi hoti hai kyunki `'2'` > `'1'`. Date conversion zaroori hai taaki calendar order follow ho.
+* **Dialect Differences:** MySQL me `STR_TO_DATE(str, '%d/%m/%Y')`, PostgreSQL me `TO_DATE(str, 'DD/MM/YYYY')`, aur SQL Server me `CONVERT(DATE, str, 103)`.
+
+### 🚨 Common Interview Traps (Counter-Questions & IT Answers):
+* **Trap 1: Capital '%Y' vs Small '%y':**
+  * *Interviewer:* *"Format specifier me '%y' aur '%Y' me kya difference hai?"*
+  * *Aapka Jawab:* *"Sir, `%Y` (capital) 4-digit year (2023) expect karta hai, jabki `%y` (small) 2-digit year (23) expect karta hai. Agar 4-digit year par `%y` laga diya toh parsing fail ho kar NULL ya wrong century evaluate karega."*
+* **Trap 2: Alias in ORDER BY vs WHERE:**
+  * *Interviewer:* *"ORDER BY me direct `standard_date` alias chal jata hai par WHERE me kyu nahi?"*
+  * *Aapka Jawab:* *"SQL execution lifecycle me `WHERE` phase `SELECT` se pehle run hota hai, isliye filter phase par alias exist nahi karta. Jabki `ORDER BY` execution ke bilkul end me chalta hai, isliye projection ke declare kiye gaye aliases ORDER BY me fully accessible hote hain."*
+
+---
+
+## 📌 Q019: Title Casing & Capitalization Normalization (`CONCAT`, `UPPER`, `LOWER`)
+
+### 💡 Production SQL:
+```sql
+SELECT 
+    product_id, 
+    CONCAT(
+        UPPER(LEFT(raw_product_name, 1)), 
+        LOWER(SUBSTRING(raw_product_name, 2))
+    ) AS clean_product_name, 
+    category, 
+    unit_price 
+FROM product_catalog 
+WHERE is_available = TRUE 
+  AND unit_price >= 1000 
+ORDER BY 
+    unit_price DESC, 
+    product_id ASC;
+```
+
+### 🏢 Business Scenario (Interviewer kaise puchega & Aapko kya bolna hai):
+* **Interviewer:** *"Product catalog me sellers ne random casings me names enter kiye hain (e.g. 'lAPTOP', 'smartWATCH'). Display consistency ke liye hume Proper Case (Pehla letter Capital, baaki sab Small) chahiye un available products ke liye jinka price >= 1000 ho. Kaise karoge?"*
+* **Aapka Professional Jawab:**
+  > *"Sir, standard SQL aur MySQL me native INITCAP function na hone ki wajah se hum string decomposition formula use karte hain: `UPPER(LEFT(str, 1))` se pehla character capital karenge aur `LOWER(SUBSTRING(str, 2))` se baaki characters ko small karke `CONCAT` kar denge."*
+
+### 🧠 Deep Concept (Jo dimag me clear hona chahiye):
+* **String Decomposition:** First letter at index 1 ko isolate karna aur position 2 se end tak slice karke lowercase karna universal cross-engine pattern hai.
+* **Native Functions:** PostgreSQL aur Oracle me direct `INITCAP(str)` function available hota hai.
+
+### 🚨 Common Interview Traps (Counter-Questions & IT Answers):
+* **Trap 1: Leading space hazard in proper casing:**
+  * *Interviewer:* *"Agar product name ke aage accidental space ho (' laptop'), toh kya yeh formula kaam karega?"*
+  * *Aapka Jawab:* *"Nahi sir, `LEFT(col, 1)` space ko pick kar lega aur actual word lowercase hi reh jayega. Isliye production cleaning me hum pehle `TRIM()` apply karte hain: `UPPER(LEFT(TRIM(col), 1))`."*
+* **Trap 2: Multi-word titles:**
+  * *Interviewer:* *"Kya yeh formula 'wireless gaming mouse' ke sabhi words ko capitalize karega?"*
+  * *Aapka Jawab:* *"Nahi sir, `SUBSTRING(..., 2)` position 2 ke baad sab kuch lowercase bana deta hai, isliye yeh single-word titles ke liye direct chalta hai. Multi-word strings ke liye PostgreSQL me `INITCAP()` best hai, jabki MySQL me string splitting ya regex approach lagti hai."*
+
+---
+
+## 📌 Q020: Date Addition & Expiry/Warranty Tracking (`DATE_ADD`, `INTERVAL`)
+
+### 💡 Production SQL:
+```sql
+SELECT 
+    warranty_id, 
+    customer_name, 
+    device_type, 
+    DATE_ADD(purchase_date, INTERVAL warranty_months MONTH) AS expiry_date, 
+    service_status 
+FROM device_warranties 
+WHERE service_status = 'Active' 
+  AND DATE_ADD(purchase_date, INTERVAL warranty_months MONTH) < '2024-01-01' 
+ORDER BY 
+    expiry_date ASC, 
+    warranty_id ASC;
+```
+
+### 🏢 Business Scenario (Interviewer kaise puchega & Aapko kya bolna hai):
+* **Interviewer:** *"Electronics customer service table me purchase_date aur dynamic warranty_months (e.g. 6, 12, 24) diye hain. Cut-off date '2024-01-01' se pehle expire ho chuki active warranties ki report kaise nikaloge?"*
+* **Aapka Professional Jawab:**
+  > *"Sir, dynamic month addition ke liye hum `DATE_ADD(purchase_date, INTERVAL warranty_months MONTH)` use karke expiry date compute karenge. `WHERE service_status = 'Active' AND DATE_ADD(...) < '2024-01-01'` se filter karenge aur `expiry_date ASC, warranty_id ASC` se sort karenge."*
+
+### 🧠 Deep Concept (Jo dimag me clear hona chahiye):
+* **Dynamic Interval Arithmetic:** Static number ke badle column reference (`warranty_months MONTH`) dynamically har row ke hisab se calculate karta hai.
+* **Cross-Dialect Differences:** MySQL me `DATE_ADD(date, INTERVAL n MONTH)`, SQL Server me `DATEADD(month, n, date)`, aur PostgreSQL me `date + (n || ' month')::interval`.
+
+### 🚨 Common Interview Traps (Counter-Questions & IT Answers):
+* **Trap 1: Dialect syntax difference:**
+  * *Interviewer:* *"SQL Server (T-SQL) me DATE_ADD kaise likhte hain?"*
+  * *Aapka Jawab:* *"Sir, SQL Server me `DATEADD` (bina underscore) use hota hai aur unit first argument banti hai: `DATEADD(month, warranty_months, purchase_date)`. MySQL me `DATE_ADD` ke saath `INTERVAL` keyword lagta hai."*
+* **Trap 2: End-of-month calendar handling:**
+  * *Interviewer:* *"Agar purchase date 31 January ho aur 1 month add karein toh leap year me kya result aayega?"*
+  * *Aapka Jawab:* *"Database engines automatically month length adjust karte hain. 31 January me 1 month add karne par leap year me `2024-02-29` aur non-leap year me `2023-02-28` return hota hai bina kisi error ke."*
+
+---
+
+## 📌 Q021: Feedback Sentiment Keyword Tagging (`CASE WHEN`, `LIKE`, CTE)
+
+### 💡 Production SQL:
+```sql
+WITH feedback_data AS (
+    SELECT 
+        review_id, 
+        customer_name, 
+        review_text, 
+        rating_stars, 
+        CASE 
+            WHEN LOWER(review_text) LIKE '%cold%' 
+              OR LOWER(review_text) LIKE '%late%' 
+              OR LOWER(review_text) LIKE '%worst%' 
+            THEN 'Negative'
+            WHEN LOWER(review_text) LIKE '%great%' 
+              OR LOWER(review_text) LIKE '%loved%' 
+            THEN 'Positive'
+            ELSE 'Neutral'
+        END AS feedback_tag 
+    FROM customer_reviews
+)
+SELECT 
+    review_id, 
+    customer_name, 
+    review_text, 
+    rating_stars, 
+    feedback_tag 
+FROM feedback_data 
+WHERE feedback_tag = 'Negative' 
+ORDER BY 
+    rating_stars ASC, 
+    review_id ASC;
+```
+
+### 🏢 Business Scenario (Interviewer kaise puchega & Aapko kya bolna hai):
+* **Interviewer:** *"Customer feedback free-text me negative keywords ('cold', 'late', 'worst') detect karke escalation queue banani hai lowest ratings pehle rakh kar. Alias ko WHERE me direct filter kaise karoge?"*
+* **Aapka Professional Jawab:**
+  > *"Sir, hum CTE (`WITH feedback_data AS ...`) use karenge jisme `CASE WHEN` ke through keywords classify karke `feedback_tag` banayenge. Outer query me direct `WHERE feedback_tag = 'Negative'` filter lagayenge taaki lamba formula repeat na karna pade."*
+
+### 🧠 Deep Concept (Jo dimag me clear hona chahiye):
+* **Sequential Short-Circuiting:** `CASE WHEN` upar se niche line-by-line evaluate hota hai aur pehla matching condition milte hi ruk jata hai. Isliye priority complaints (negative) ko top branches par rakhna zaroori hai.
+* **CTE Modularization:** CTE use karne se code maintainable rehta hai aur same statement me projection alias filter ho pata hai.
+
+### 🚨 Common Interview Traps (Counter-Questions & IT Answers):
+* **Trap 1: Conflicting keywords in single review:**
+  * *Interviewer:* *"Agar customer ne likha 'late but great', toh kaunsa tag lagega?"*
+  * *Aapka Jawab:* *"Sir, kyunki negative condition branch pehle likhi hai, engine 'late' match hote hi turant 'Negative' assign kar dega aur agle branches skip kar dega. Operations triage me negative escalations ko priority di jaati hai."*
+* **Trap 2: Double wildcard performance:**
+  * *Interviewer:* *"5 crore reviews par `LIKE '%cold%'` slow kyu hoga aur production me iska alternative kya hai?"*
+  * *Aapka Jawab:* *"Leading aur trailing wildcards B-Tree index ko completely invalidate kar dete hain aur Full Table Scan hota hai. High-volume production systems me relational LIKE ke badle PostgreSQL Full-Text Search (`tsvector` with GIN index) ya Elasticsearch integrate kiya jata hai."*
+
+---
+
+## 📌 Q022: Exact Age Calculation & Senior Citizen KYC (`TIMESTAMPDIFF`)
+
+### 💡 Production SQL:
+```sql
+SELECT 
+    holder_id, 
+    customer_name, 
+    date_of_birth, 
+    TIMESTAMPDIFF(YEAR, date_of_birth, '2024-01-01') AS customer_age, 
+    policy_status 
+FROM policy_holders 
+WHERE policy_status = 'Active' 
+  AND TIMESTAMPDIFF(YEAR, date_of_birth, '2024-01-01') >= 60 
+ORDER BY 
+    customer_age DESC, 
+    holder_id ASC;
+```
+
+### 🏢 Business Scenario (Interviewer kaise puchega & Aapko kya bolna hai):
+* **Interviewer:** *"Health insurance policyholders table me date_of_birth di hai. Benchmark date '2024-01-01' par exact completed age calculate karke un Active senior citizens (age >= 60) ko filter karna hai jinka birthday cross ho chuka ho. Query kaise likhoge?"*
+* **Aapka Professional Jawab:**
+  > *"Sir, simple calendar year minus karne (`YEAR - YEAR`) se birthday month ignore ho jata hai aur galat age nikalti hai. Hum `TIMESTAMPDIFF(YEAR, date_of_birth, '2024-01-01')` use karenge jo check karta hai ki target date tak birthday complete hua hai ya nahi. `WHERE policy_status = 'Active' AND TIMESTAMPDIFF(...) >= 60` se senior citizens filter karenge."*
+
+### 🧠 Deep Concept (Jo dimag me clear hona chahiye):
+* **Completed Birthday vs Year Crossing:** Agar banda 25 March 1964 ko born hua hai, toh 1 Jan 2024 ko uski real age 59 hai (60 nahi), kyunki uska birthday March me aayega. `TIMESTAMPDIFF` exact day tak calendar validity maintain karta hai.
+* **Dialect Differences:** MySQL me `TIMESTAMPDIFF(YEAR, dob, target)`, PostgreSQL me `EXTRACT(YEAR FROM AGE(target, dob))`.
+
+### 🚨 Common Interview Traps (Counter-Questions & IT Answers):
+* **Trap 1: Year subtraction fallacy:**
+  * *Interviewer:* *"Hum `YEAR('2024-01-01') - YEAR(date_of_birth)` kyu nahi use karte?"*
+  * *Aapka Jawab:* *"Sir, yeh formula sirf saal ka difference leta hai aur months/days ignore kar deta hai. Agar kisi ka birthday saal ke aakhir me hai, toh yeh formula use pehle hi 1 saal bada show kar dega, jisse insurance premium ya audit me severe financial discrepancy create hoti hai."*
+* **Trap 2: T-SQL DATEDIFF boundary trap:**
+  * *Interviewer:* *"SQL Server me `DATEDIFF(year, dob, target)` directly chalane me kya dikkat aati hai?"*
+  * *Aapka Jawab:* *"Sir, SQL Server ka DATEDIFF sirf calendar year boundary count karta hai. Example: 31 Dec 2023 aur 1 Jan 2024 ke beech DATEDIFF(year) ka answer 1 aayega (jabki actual gap sirf 1 din ka hai). Isliye SQL Server me adjustment logic lagana padta hai."*
+
+---
+
+## 📌 Q023: Hour & Minute Extraction for Peak Traffic (`HOUR`, `MINUTE`, `DATETIME`)
+
+### 💡 Production SQL:
+```sql
+SELECT 
+    trip_id, 
+    rider_name, 
+    pickup_time, 
+    HOUR(pickup_time) AS pickup_hour, 
+    MINUTE(pickup_time) AS pickup_minute, 
+    trip_distance_km 
+FROM delivery_trips 
+WHERE trip_status = 'Completed' 
+  AND HOUR(pickup_time) BETWEEN 19 AND 21 
+  AND trip_distance_km >= 5.0 
+ORDER BY 
+    pickup_time DESC, 
+    trip_id ASC;
+```
+
+### 🏢 Business Scenario (Interviewer kaise puchega & Aapko kya bolna hai):
+* **Interviewer:** *"Quick-commerce / Ride-hailing delivery trips me evening surge pricing (7:00 PM se 9:59 PM) verify karni hai un completed trips ke liye jo 5 km se lambi hain. Time filtering aur extraction kaise design karoge?"*
+* **Aapka Professional Jawab:**
+  > *"Sir, SQL me 24-hour military clock follow hota hai. 7:00 PM `19` aur 9:59 PM `21` hota hai. Hum `HOUR(pickup_time)` aur `MINUTE(pickup_time)` extract karenge, `WHERE trip_status = 'Completed' AND HOUR(pickup_time) BETWEEN 19 AND 21 AND trip_distance_km >= 5.0` se filter karenge, aur latest trips pehle display karne ke liye `pickup_time DESC` sort karenge."*
+
+### 🧠 Deep Concept (Jo dimag me clear hona chahiye):
+* **24-Hour Time Mechanics:** `HOUR()` 0 se 23 tak integer deta hai. 7 PM = 19, 8 PM = 20, 9 PM = 21, 10 PM = 22.
+* **Dialect Differences:** MySQL me `HOUR(col)`, PostgreSQL me `EXTRACT(HOUR FROM col)`, aur SQL Server me `DATEPART(hour, col)`.
+
+### 🚨 Common Interview Traps (Counter-Questions & IT Answers):
+* **Trap 1: 9:59 PM vs 10 PM boundary trap:**
+  * *Interviewer:* *"Agar surge 9:59 PM tak hai, toh kya hum `BETWEEN 19 AND 22` likh sakte hain?"*
+  * *Aapka Jawab:* *"Nahi sir, `HOUR = 22` ka matlab 10:00 PM se 10:59:59 PM hota hai. `BETWEEN 19 AND 22` likhne se poora 10 baje ka ghanta bhi shamil ho jayega aur surge overpay ho jayega. Exact 9:59 PM tak ke liye `BETWEEN 19 AND 21` hi likhna zaroori hai."*
+* **Trap 2: UTC vs Local Timezone skew:**
+  * *Interviewer:* *"Agar server timestamps UTC me store ho aur surge IST (UTC+5:30) par depend karta ho toh kya dikkat aayegi?"*
+  * *Aapka Jawab:* *"Sir, direct UTC par HOUR() nikalne se 5.5 hours ka shift aa jayega aur dopehar ki trips surge me calculate ho jayengi. Production me hum pehle timezone convert karte hain: `CONVERT_TZ(pickup_time, '+00:00', '+05:30')`."*
+
+---
+
+## 📌 Q024: Regex Alphanumeric Validation (`REGEXP`, `RLIKE`, Anchors)
+
+### 💡 Production SQL:
+```sql
+SELECT 
+    kyc_id, 
+    customer_name, 
+    pan_number, 
+    submission_status 
+FROM kyc_verifications 
+WHERE submission_status = 'Submitted' 
+  AND pan_number NOT REGEXP '^[A-Z]{5}[0-9]{4}[A-Z]$' 
+ORDER BY kyc_id ASC;
+```
+
+### 🏢 Business Scenario (Interviewer kaise puchega & Aapko kya bolna hai):
+* **Interviewer:** *"FinTech banking KYC me Indian PAN Card format strictly 5 letters + 4 numbers + 1 letter (`ABCDE1234F`) hona chahiye. Fraud aur validation failure se bachne ke liye un Submitted records ko kaise extract karoge jinka PAN format invalid hai?"*
+* **Aapka Professional Jawab:**
+  > *"Sir, hum regular expression use karenge exact boundary anchors ke saath: `'^[A-Z]{5}[0-9]{4}[A-Z]$'`. Invalid formats ko isolate karne ke liye `WHERE submission_status = 'Submitted' AND pan_number NOT REGEXP ...` filter lagayenge."*
+
+### 🧠 Deep Concept (Jo dimag me clear hona chahiye):
+* **Anchors (`^` aur `$`) ki Ahmiyat:** `^` string ke start aur `$` string ke end ko lock karta hai. Bina inke regex poori string me kahin bhi match dhoondhta hai aur `'INVALID_ABCDE1234F_EXTRA'` ko bhi valid maan leta hai!
+* **Cross-Dialect Differences:** MySQL me `REGEXP` / `RLIKE`, PostgreSQL me `!~` (negated regex), aur Oracle me `NOT REGEXP_LIKE()`. SQL Server me native regex nahi hota, wahan `LIKE '[A-Z]...'` pattern use hota hai.
+
+### 🚨 Common Interview Traps (Counter-Questions & IT Answers):
+* **Trap 1: Anchors na lagane ka nuksan:**
+  * *Interviewer:* *"Agar regex me `^` aur `$` na lagayein toh kya problem aayegi?"*
+  * *Aapka Jawab:* *"Sir, bina anchors ke regex partial match (substring) allow karta hai. 15-character ka invalid input bhi valid maan liya jayega agar uske beech me 10 valid characters hon. Strict 10-character validation ke liye anchors mandatory hain."*
+* **Trap 2: T-SQL me regex support:**
+  * *Interviewer:* *"Kya SQL Server (T-SQL) me `REGEXP` keyword chalta hai?"*
+  * *Aapka Jawab:* *"Nahi sir, SQL Server native REGEXP keyword support nahi karta. Wahan character classes ke saath `LIKE '[A-Z][A-Z]...'` likhna padta hai ya CLR integration use karni hoti hai."*
+
+---
+
+## 📌 Q025: Handling NULLs & Multi-Tier Fallback Imputation (`COALESCE`)
+
+### 💡 Production SQL:
+```sql
+SELECT 
+    contact_id, 
+    customer_name, 
+    COALESCE(primary_phone, alternate_phone, email_id, 'No Contact Available') AS preferred_contact, 
+    account_type 
+FROM customer_contacts 
+WHERE account_type = 'Premium' 
+ORDER BY contact_id ASC;
+```
+
+### 🏢 Business Scenario (Interviewer kaise puchega & Aapko kya bolna hai):
+* **Interviewer:** *"Customer contact table me numbers missing hote hain. Marketing gateway ke liye priority order me pehla non-null contact address (Primary Phone -> Alternate Phone -> Email -> 'No Contact Available') nikalna hai un Premium accounts ke liye. Query kaise likhoge?"*
+* **Aapka Professional Jawab:**
+  > *"Sir, multi-tier fallback ke liye ANSI standard `COALESCE(primary_phone, alternate_phone, email_id, 'No Contact Available')` use karenge jo left-to-right evaluate karke pehli non-null value pick karta hai. `WHERE account_type = 'Premium'` filter lagakar `contact_id ASC` se sort kar denge."*
+
+### 🧠 Deep Concept (Jo dimag me clear hona chahiye):
+* **`COALESCE` vs `IFNULL` / `NVL`:** `IFNULL()` sirf 2 arguments leta hai. 4-level hierarchy ke liye 3 nested IFNULL likhne padenge jo anti-pattern hai. `COALESCE` unlimited arguments leta hai aur ANSI compliant hai.
+* **Short-Circuit Evaluation:** `COALESCE` pehla non-null milte hi aage ke columns evaluate karna band kar deta hai, jo CPU resources bachaata hai.
+
+### 🚨 Common Interview Traps (Counter-Questions & IT Answers):
+* **Trap 1: Empty string `''` vs NULL trap:**
+  * *Interviewer:* *"Agar customer profile me `primary_phone = ''` (empty string) ho, toh `COALESCE('', alternate_phone)` kya dega?"*
+  * *Aapka Jawab:* *"Sir, SQL me empty string `''` NULL nahi hota balki ek valid character string hota hai, isliye COALESCE empty string hi return kar dega aur alternate phone tak nahi jayega! Isse bachne ke liye dirty data me hum `NULLIF(primary_phone, '')` use karte hain jo empty string ko NULL me convert kar deta hai."*
+* **Trap 2: Data type compatibility:**
+  * *Interviewer:* *"Kya COALESCE ke andar alag-alag data types pass kar sakte hain?"*
+  * *Aapka Jawab:* *"Nahi sir, ANSI SQL me COALESCE ke sabhi arguments compatible data types ke hone chahiye, warna database type mismatch error ya unexpected implicit conversion karta hai."*
+
+---
+
+## 📌 Q026: Day Name Extraction & Weekend Surge Analysis (`DAYNAME`, `CASE WHEN`)
+
+### 💡 Production SQL:
+```sql
+SELECT 
+    sale_id, 
+    store_location, 
+    sale_date, 
+    DAYNAME(sale_date) AS day_of_week, 
+    CASE 
+        WHEN DAYNAME(sale_date) IN ('Saturday', 'Sunday') THEN 'Weekend' 
+        ELSE 'Weekday' 
+    END AS day_type, 
+    gross_amount 
+FROM store_sales 
+WHERE gross_amount >= 5000 
+  AND DAYNAME(sale_date) IN ('Saturday', 'Sunday') 
+ORDER BY 
+    gross_amount DESC, 
+    sale_id ASC;
+```
+
+### 🏢 Business Scenario (Interviewer kaise puchega & Aapko kya bolna hai):
+* **Interviewer:** *"Retail store sales table me transaction date di hai. Weekend (Saturday & Sunday) par hue high-ticket transactions (gross_amount >= 5000) ko extract karna hai human-readable day name aur 'Weekend'/'Weekday' cohort tag ke saath. Kaise karoge?"*
+* **Aapka Professional Jawab:**
+  > *"Sir, hum `DAYNAME(sale_date)` se full day name extract karenge. `CASE WHEN DAYNAME(...) IN ('Saturday', 'Sunday') THEN 'Weekend' ELSE 'Weekday' END` se cohort classification karenge aur `WHERE gross_amount >= 5000 AND DAYNAME(...) IN ('Saturday', 'Sunday')` se filter karenge."*
+
+### 🧠 Deep Concept (Jo dimag me clear hona chahiye):
+* **`DAYNAME` vs `DAYOFWEEK`:** `DAYNAME()` string return karta hai ('Sunday'), jabki `DAYOFWEEK()` integer index deta hai (1 = Sunday, 7 = Saturday). Internationalization me numeric extraction (`DAYOFWEEK`) server locale change hone par bhi fail nahi hoti.
+* **Dialect Variations:** PostgreSQL me `TO_CHAR(date, 'FMDay')` use hota hai, aur SQL Server me `DATENAME(weekday, date)`.
+
+### 🚨 Common Interview Traps (Counter-Questions & IT Answers):
+* **Trap 1: PostgreSQL blank space padding trap:**
+  * *Interviewer:* *"PostgreSQL me `TO_CHAR(sale_date, 'Day') = 'Saturday'` match kyu fail hota hai?"*
+  * *Aapka Jawab:* *"Sir, PostgreSQL ka `TO_CHAR(..., 'Day')` blank spaces add karta hai 9 characters ('Wednesday') match karne ke liye ('Saturday '). Isse exact equality fail ho jati hai. Isse bachne ke liye Fill-Mode modifier `FMDay` use karte hain: `TO_CHAR(sale_date, 'FMDay')`."*
+* **Trap 2: `DAYOFWEEK()` vs `WEEKDAY()` indexing difference:**
+  * *Interviewer:* *"MySQL me `DAYOFWEEK()` aur `WEEKDAY()` me kya difference hai?"*
+  * *Aapka Jawab:* *"Sir, `DAYOFWEEK()` ODBC standard follow karta hai jisme 1 = Sunday aur 7 = Saturday hota hai. Jabki `WEEKDAY()` ISO/Python standard follow karta hai jisme 0 = Monday aur 6 = Sunday hota hai. Galat function use karne se day shift ho jata hai."*
+
+---
+
+## 📌 Q027: Nullifying Sentinel Dummy Values (`NULLIF`)
+
+### 💡 Production SQL:
+```sql
+SELECT 
+    reading_id, 
+    sensor_location, 
+    NULLIF(temperature_celsius, -999.00) AS clean_temperature, 
+    battery_level_pct 
+FROM sensor_telemetry 
+WHERE battery_level_pct >= 20 
+  AND NULLIF(temperature_celsius, -999.00) IS NOT NULL 
+ORDER BY 
+    clean_temperature DESC, 
+    reading_id ASC;
+```
+
+### 🏢 Business Scenario (Interviewer kaise puchega & Aapko kya bolna hai):
+* **Interviewer:** *"IoT sensor network me hardware disconnection par temperature -999.00 (sentinel dummy code) record ho jata hai. Agar uncleaned data par AVG() nikalein toh poori analytics crash/distort ho jayegi. -999.00 ko NULL me convert karke valid readings kaise nikaloge?"*
+* **Aapka Professional Jawab:**
+  > *"Sir, hum `NULLIF(temperature_celsius, -999.00)` use karenge jo matching sentinel value ko NULL bana deta hai. `WHERE battery_level_pct >= 20 AND NULLIF(...) IS NOT NULL` filter lagakar invalid records eliminate karenge aur `clean_temperature DESC` sort karenge."*
+
+### 🧠 Deep Concept (Jo dimag me clear hona chahiye):
+* **`NULLIF` Mechanism:** `NULLIF(A, B)` check karta hai: agar $A = B$ toh return `NULL`, warna return $A$. Yeh shorthand hai: `CASE WHEN A = B THEN NULL ELSE A END`.
+* **Aggregate Protection:** SQL ke aggregate functions (`AVG`, `SUM`, `MIN`, `MAX`) automatically NULLs ko ignore karte hain. Sentinel -999 ko NULL banane se average calculations 100% accurate ho jati hain.
+
+### 🚨 Common Interview Traps (Counter-Questions & IT Answers):
+* **Trap 1: `COALESCE` vs `NULLIF`:**
+  * *Interviewer:* *"COALESCE aur NULLIF me exact kya difference hai?"*
+  * *Aapka Jawab:* *"Sir, dono ek doosre ke mirror opposites hain: `COALESCE` NULL ko non-null value me convert karta hai, jabki `NULLIF` kisi target non-null value ko NULL me convert karta hai."*
+* **Trap 2: Division-by-Zero prevention:**
+  * *Interviewer:* *"SQL me division-by-zero error rokne ke liye NULLIF kaise use hota hai?"*
+  * *Aapka Jawab:* *"Sir, denominator me `revenue / NULLIF(units_sold, 0)` lagane se agar units 0 honge toh denominator NULL ban jayega, aur kisi bhi number ko NULL se divide karne par error crash hone ke badle safely NULL return ho jata hai."*
+
+---
+
+## 📌 Q028: Date Truncation & Cohort Normalization (`DATE_FORMAT` / `DATE_TRUNC`)
+
+### 💡 Production SQL:
+```sql
+SELECT 
+    payment_id,
+    customer_id,
+    payment_date,
+    DATE_FORMAT(payment_date, '%Y-%m-01') AS cohort_month,
+    plan_name,
+    amount_paid
+FROM subscription_payments
+WHERE payment_status = 'Success'
+  AND amount_paid >= 500.00
+  AND plan_name IN ('Monthly', 'Annual')
+ORDER BY cohort_month DESC, payment_id ASC;
+```
+
+### 🏢 Business Scenario (Interviewer kaise puchega & Aapko kya bolna hai):
+* **Interviewer:** *"SaaS / OTT retention cohort analysis me users kisi bhi random date par subscribe karte hain. Monthly retention aur churn curves calculate karne ke liye har payment date ko uske month ki 1st date (`YYYY-MM-01`) par normalize kaise karoge?"*
+* **Aapka Professional Jawab:**
+  > *"Sir, hum `DATE_FORMAT(payment_date, '%Y-%m-01')` use karenge jo year aur month ko format karte hue day ko static '01' par lock kar deta hai. Business filters `payment_status = 'Success'`, `amount_paid >= 500.00`, aur `plan_name IN ('Monthly', 'Annual')` apply karke cohort timeline ke hisab se `cohort_month DESC, payment_id ASC` sort karenge."*
+
+### 🧠 Deep Concept (Jo dimag me clear hona chahiye):
+* **Temporal Cohorting:** Random transaction dates ko 1st-of-month anchor par align karna mandatory hota hai taaki cohort retention matrix (Month 0, Month 1, Month 2...) reliably compute ho sake.
+* **Dialect Differences:**
+  * **MySQL:** `DATE_FORMAT(date, '%Y-%m-01')` (string) ya `DATE_SUB(date, INTERVAL DAY(date)-1 DAY)` (native DATE).
+  * **PostgreSQL / Snowflake / BigQuery:** `DATE_TRUNC('month', date)`.
+  * **SQL Server:** `DATEFROMPARTS(YEAR(date), MONTH(date), 1)`.
+
+### 🚨 Common Interview Traps (Counter-Questions & IT Answers):
+* **Trap 1: Text `YYYY-MM` vs Date `YYYY-MM-01`:**
+  * *Interviewer:* *"Hum directly `YYYY-MM` (jaise '2024-03') string format me group kyu nahi karte?"*
+  * *Aapka Jawab:* *"Sir, downstream BI tools (Power BI, Tableau) me continuous Date hierarchy aur Calendar dimension tables ke saath join karne ke liye true DATE data type chahiye hota hai. 'YYYY-MM-01' real date format maintain karta hai jisse time-intelligence functions work karte hain."*
+* **Trap 2: `OR` Operator Precedence Leak:**
+  * *Interviewer:* *"Agar `WHERE plan_name = 'Monthly' OR plan_name = 'Annual' AND payment_status = 'Success'` likhein toh kya galat hoga?"*
+  * *Aapka Jawab:* *"Sir, `AND` ki precedence `OR` se high hoti hai. Isliye query evaluate karegi `(plan_name = 'Annual' AND Success)` aur `plan_name = 'Monthly'` akele condition ban jayegi, jisse Failed monthly payments bhi leak ho jayenge. Isse bachne ke liye `IN ('Monthly', 'Annual')` ya parentheses lagana zaroori hai."*
+
+---
+
+## 📌 Q029: Credit Card & PII Data Masking (`REPEAT`, `RIGHT`, `LPAD`)
+
+### 💡 Production SQL:
+```sql
+SELECT 
+    card_id, 
+    customer_name, 
+    CONCAT(REPEAT('*', LENGTH(card_number) - 4), RIGHT(card_number, 4)) AS masked_card_number, 
+    card_type, 
+    credit_limit 
+FROM payment_cards 
+WHERE card_status = 'Active' 
+  AND card_type = 'Credit' 
+ORDER BY card_id ASC;
+```
+
+### 🏢 Business Scenario (Interviewer kaise puchega & Aapko kya bolna hai):
+* **Interviewer:** *"FinTech banking audit me PCI-DSS compliance ke tahat customer ka raw 16-digit card number expose nahi kar sakte. Reporting analysts ke liye pehle digits ko asterisks (`*`) se mask karke sirf aakhri 4 digits visible kaise karoge?"*
+* **Aapka Professional Jawab:**
+  > *"Sir, dynamic masking ke liye hum `CONCAT(REPEAT('*', LENGTH(card_number) - 4), RIGHT(card_number, 4))` use karenge. Isse 16-digit (Visa/Mastercard), 15-digit (Amex), ya 14-digit (Diners) kisi bhi card ki length preserve rehti hai aur last 4 digits dikhte hain. Alternate approach me `LPAD(RIGHT(card_number, 4), LENGTH(card_number), '*')` bhi use kiya ja sakta hai."*
+
+### 🧠 Deep Concept (Jo dimag me clear hona chahiye):
+* **Dynamic Length Handling:** Static 12 asterisks hardcode karne ke bajaye `LENGTH(col) - 4` use karna chahiye taaki non-standard length cards break na hon.
+* **Storage vs Egress Masking:** Raw PAN database me plain text me store nahi hota (tokenized ya AES-256 encrypted hota hai). Masking presentation/view layer par RBAC access control ke liye use hoti hai.
+
+### 🚨 Common Interview Traps (Counter-Questions & IT Answers):
+* **Trap 1: Hardcoding 12 asterisks:**
+  * *Interviewer:* *"Agar Amex 15-digit card par `REPEAT('*', 12)` lagaya toh kya hoga?"*
+  * *Aapka Jawab:* *"Sir, card ki total length 12 + 4 = 16 ban jayegi jo data integrity distort kar degi. Hamesha dynamic `LENGTH(card_number) - 4` ya `LPAD` use karna best practice hai."*
+* **Trap 2: BIGINT vs VARCHAR storage:**
+  * *Interviewer:* *"Card numbers ko BIGINT me store kyu nahi karna chahiye?"*
+  * *Aapka Jawab:* *"Sir, do reasons hain: pehla, card numbers par koi math calculation (+, -) nahi hoti. Doosra, kuch cards me leading zeros hote hain jo BIGINT me drop ho jate hain. Isliye identifiers ko hamesha VARCHAR me rakha jata hai."*
+
+---
+*(Curriculum continues with Q030 to Q035...)*

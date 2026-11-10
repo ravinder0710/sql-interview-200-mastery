@@ -5,7 +5,7 @@
 
 ![SQL Challenge](https://img.shields.io/badge/SQL-200_Questions_Challenge-blue.svg?style=for-the-badge&logo=postgresql)
 ![Role](https://img.shields.io/badge/Target_Role-Data_Analyst_%280--2_Years%29-orange.svg?style=for-the-badge)
-![Progress](https://img.shields.io/badge/Progress-16%2F200_%288%25%29-brightgreen.svg?style=for-the-badge)
+![Progress](https://img.shields.io/badge/Progress-29%2F200_%2815%25%29-brightgreen.svg?style=for-the-badge)
 ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)
 
 <p align="center">
@@ -31,19 +31,19 @@ This repository documents **200 real-world, high-frequency interview questions**
 
 ---
 
-## 🗂️ Curriculum & Progress Tracker (16 / 200)
+## 🗂️ Curriculum & Progress Tracker (29 / 200)
 
 | Block | Topic / Category | Target | Completed | Progress |
 |---|---|:---:|:---:|:---|
-| **01** | **Foundations & Data Filtering** (`WHERE`, `LIKE`, `IN`, `BETWEEN`, `NULL`, `ORDER BY`, `LIMIT`, Math) | 15 | 10 | `[███████░░░] 67%` |
-| **02** | **String & Date Cleaning** (`CONCAT`, `UPPER`/`LOWER`, `SUBSTRING`, `DATEDIFF`, `DATEADD`) | 20 | 0 | `[░░░░░░░░░░] 0%` |
+| **01** | **Foundations & Data Filtering** (`WHERE`, `LIKE`, `IN`, `BETWEEN`, `NULL`, `ORDER BY`, `LIMIT`, Math) | 15 | 15 | `[██████████] 100%` |
+| **02** | **String & Date Cleaning** (`CONCAT`, `UPPER`/`LOWER`, `SUBSTRING`, `DATEDIFF`, `DATEADD`) | 20 | 14 | `[███████░░░] 70%` |
 | **03** | **Aggregations & Grouping** (`COUNT`, `SUM`, `AVG`, `GROUP BY`, `HAVING`, NULL traps) | 30 | 0 | `[░░░░░░░░░░] 0%` |
 | **04** | **Conditional Business Logic** (`CASE WHEN`, Bucketing, Conditional Aggregation) | 20 | 0 | `[░░░░░░░░░░] 0%` |
 | **05** | **Multi-Table Joins (2 & 3 Tables)** (`INNER`, `LEFT` for unmatched records, 3-Table chains, `SELF JOIN`) | 50 | 0 | `[░░░░░░░░░░] 0%` |
 | **06** | **Subqueries & CTEs** (Scalar/Correlated Subqueries, `WITH` clause modular pipelines) | 25 | 0 | `[░░░░░░░░░░] 0%` |
 | **07** | **Window Functions & Ranking** (`ROW_NUMBER`, `RANK`, `DENSE_RANK`, `LAG`/`LEAD`, Running Totals)| 25 | 0 | `[░░░░░░░░░░] 0%` |
 | **08** | **Real Company Mock Sets & Case Studies** (Amazon, TCS, Accenture, FinTech case scenarios) | 15 | 0 | `[░░░░░░░░░░] 0%` |
-| **TOTAL** | **8 High-Impact Blocks** | **200** | **10** | **10 / 200 (5%)** |
+| **TOTAL** | **8 High-Impact Blocks** | **200** | **29** | **29 / 200 (15%)** |
 
 ---
 
@@ -67,7 +67,20 @@ This repository documents **200 real-world, high-frequency interview questions**
 | **Q014** | Date Part Extraction & Temporal Filtering | Date Functions (`YEAR`, `MONTH`, `DAY`, `EXTRACT`) | Flipkart, Zomato, Retail | [Q014 Solution ↗️](01_Foundations_and_Filtering/Q014_date_parts_extraction_year_month_day.md) |
 | **Q015** | Date Difference & Recency SLA Analysis | Date Math (`DATEDIFF`, `CURRENT_DATE`) | Swiggy, Amazon, Logistics | [Q015 Solution ↗️](01_Foundations_and_Filtering/Q015_datediff_delivery_sla_breach.md) |
 | **Q016** | Cleaning Inconsistent Phone Prefixes | String Standardization (`RIGHT`, `REPLACE`, `LENGTH`) | Truecaller, FinTech, OTP | [Q016 Solution ↗️](02_String_and_Date_Cleaning/Q016_clean_phone_prefixes_and_hyphens.md) |
-| **Q017** | Email Username & Domain Separation | String Search & Splitting (`INSTR`, `SUBSTRING`) | Gmail, Marketing, HR | *In Progress* |
+| **Q017** | Dynamic String Delimiter Splitting | String Search & Splitting (`INSTR`, `SUBSTRING`, `LEFT`) | Gmail, Marketing, HR | [Q017 Solution ↗️](02_String_and_Date_Cleaning/Q017_email_username_and_domain_separation.md) |
+| **Q018** | String to Date Conversion & Formatting | String & Date Casting (`STR_TO_DATE`, `DATE_FORMAT`) | Banking, Audit, Healthcare | [Q018 Solution ↗️](02_String_and_Date_Cleaning/Q018_string_to_date_conversion_and_formatting.md) |
+| **Q019** | Title Casing & Capitalization Normalization | String Transformation (`INITCAP`, `CONCAT`, `UPPER`) | Netflix, E-Commerce, Retail | [Q019 Solution ↗️](02_String_and_Date_Cleaning/Q019_title_casing_capitalization_normalization.md) |
+| **Q020** | Date Addition & Expiry/Warranty Tracking | Date Arithmetic (`DATE_ADD`, `INTERVAL`) | Amazon, AppleCare, FinTech | [Q020 Solution ↗️](02_String_and_Date_Cleaning/Q020_date_addition_expiry_tracking.md) |
+| **Q021** | Feedback Sentiment Keyword Tagging | String Pattern & Keyword Search (`CASE`, `LIKE`, CTE) | Uber, Swiggy, Airbnb | [Q021 Solution ↗️](02_String_and_Date_Cleaning/Q021_feedback_sentiment_keyword_tagging.md) |
+| **Q022** | Exact Age Calculation & Senior Citizen KYC | Date Difference & Calendar Math (`TIMESTAMPDIFF`) | FinTech, Insurance, KYC | [Q022 Solution ↗️](02_String_and_Date_Cleaning/Q022_exact_age_calculation_timestampdiff.md) |
+| **Q023** | Hour & Minute Extraction for Peak Traffic | Time Functions (`HOUR`, `MINUTE`, `DATETIME`) | Uber, Swiggy, Dunzo | [Q023 Solution ↗️](02_String_and_Date_Cleaning/Q023_hour_and_minute_extraction_peak_traffic.md) |
+| **Q024** | Regex Alphanumeric Validation | Regular Expressions (`REGEXP`, `RLIKE`) | Banking, Fraud, KYC | [Q024 Solution ↗️](02_String_and_Date_Cleaning/Q024_regex_alphanumeric_pan_validation.md) |
+| **Q025** | Handling NULLs & Fallback Imputation | Missing Data Handling (`COALESCE`, `IFNULL`) | CRM, E-Commerce, Billing | [Q025 Solution ↗️](02_String_and_Date_Cleaning/Q025_handling_nulls_fallback_coalesce.md) |
+| **Q026** | Day Name Extraction & Weekend Surge Analysis | Day Functions (`DAYNAME`, `CASE WHEN`) | Luxury Retail, Zomato, Malls | [Q026 Solution ↗️](02_String_and_Date_Cleaning/Q026_day_name_extraction_weekend_analysis.md) |
+| **Q027** | Nullifying Sentinel Dummy Values | Data Cleaning (`NULLIF`, `CASE WHEN`) | IoT, Telemetry, Weather | [Q027 Solution ↗️](02_String_and_Date_Cleaning/Q027_nullifying_sentinel_dummy_values.md) |
+| **Q028** | Date Truncation & Cohort Normalization | Temporal Aggregation (`DATE_FORMAT`, `DATE_SUB`) | Netflix, Spotify, SaaS | [Q028 Solution ↗️](02_String_and_Date_Cleaning/Q028_date_truncation_cohort_normalization.md) |
+| **Q029** | Credit Card & PII Data Masking | String Masking (`REPEAT`, `RIGHT`, `CONCAT`) | FinTech, Banking, PCI-DSS | [Q029 Solution ↗️](02_String_and_Date_Cleaning/Q029_credit_card_pii_masking.md) |
+| **Q030** | URL Top-Level Domain (TLD) Extraction | String Parsing (`SUBSTRING_INDEX`, `RIGHT`) | Marketing, SEO, Web Analytics | *In Progress* |
 
 ---
 
