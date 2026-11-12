@@ -1066,4 +1066,636 @@ ORDER BY card_id ASC;
   * *Aapka Jawab:* *"Sir, do reasons hain: pehla, card numbers par koi math calculation (+, -) nahi hoti. Doosra, kuch cards me leading zeros hote hain jo BIGINT me drop ho jate hain. Isliye identifiers ko hamesha VARCHAR me rakha jata hai."*
 
 ---
-*(Curriculum continues with Q030 to Q035...)*
+
+## 📌 Q030: URL Domain Parsing (`SUBSTRING_INDEX` / `SPLIT_PART`)
+
+### 💡 Production SQL:
+```sql
+SELECT 
+    referral_id, 
+    campaign_name, 
+    SUBSTRING_INDEX(SUBSTRING_INDEX(referrer_url, '//', -1), '/', 1) AS clean_domain, 
+    visitor_count 
+FROM web_traffic_referrals 
+WHERE traffic_source = 'Referral' 
+  AND visitor_count >= 1000 
+ORDER BY visitor_count DESC, referral_id ASC;
+```
+
+### 🏢 Business Scenario (Interviewer kaise puchega & Aapko kya bolna hai):
+* **Interviewer:** *"Marketing attribution reporting me full referral URLs aate hain jisme protocol (`https://`) aur paths (`/page`) hote hain. Reporting channel grouping ke liye sirf clean host domain kaise extract karoge?"*
+* **Aapka Professional Jawab:**
+  > *"Sir, MySQL me nested `SUBSTRING_INDEX` use karenge: pehle `SUBSTRING_INDEX(url, '//', -1)` se protocol strip karenge, fir outer `SUBSTRING_INDEX(..., '/', 1)` se trailing path strip karke clean domain extract karenge."*
+
+### 🧠 Deep Concept (Jo dimag me clear hona chahiye):
+* **Negative vs Positive Count:** `SUBSTRING_INDEX(str, delim, -1)` right side se pehla delimiter dekhta hai (protocol strip), jabki `SUBSTRING_INDEX(..., delim, 1)` left side se pehla delimiter dekhta hai (path strip).
+* **Modern Warehouse Alternatives:**
+  * **PostgreSQL:** `SPLIT_PART(SPLIT_PART(url, '//', 2), '/', 1)`
+  * **BigQuery:** `NET.HOST(url)`
+  * **Snowflake:** `PARSE_URL(url):host`
+
+### 🚨 Common Interview Traps (Counter-Questions & IT Answers):
+* **Trap 1: Port number ya query params ka trap:**
+  * *Interviewer:* *"Agar URL me port number `domain.com:8080` ya bina slash ke direct query `domain.com?ref=123` ho toh slash splitting kyu fail ho sakti hai?"*
+  * *Aapka Jawab:* *"Sir, slash-based parsing port ya question mark ko handle nahi karegi. Aise complex edge cases ke liye production me Regex (`REGEXP_SUBSTR`) ya cloud warehouse ke built-in function jaise `NET.HOST()` use karte hain jo RFC standard URL parsing follow karte hain."*
+* **Trap 2: Missing protocol handling:**
+  * *Interviewer:* *"Agar input me `http://` missing ho toh kya `-1` index break hoga?"*
+  * *Aapka Jawab:* *"Nahi sir, MySQL me agar delimiter nahi milta toh wo poori string ko as-it-is return kar deta hai, isliye query crash nahi hoti."*
+
+---
+
+## 📌 Q031: User Session Duration & Engagement Time (`TIMESTAMPDIFF`)
+
+### 💡 Production SQL:
+```sql
+SELECT 
+    session_id, 
+    user_id, 
+    login_time, 
+    logout_time, 
+    TIMESTAMPDIFF(MINUTE, login_time, logout_time) AS duration_minutes, 
+    device_type 
+FROM user_game_sessions 
+WHERE session_status = 'Ended' 
+  AND device_type IN ('Mobile', 'Tablet') 
+  AND TIMESTAMPDIFF(MINUTE, login_time, logout_time) >= 30 
+ORDER BY duration_minutes DESC, session_id ASC;
+```
+
+### 🏢 Business Scenario (Interviewer kaise puchega & Aapko kya bolna hai):
+* **Interviewer:** *"Gaming ya OTT platform me user screen-time track karne ke liye login aur logout timestamp se session duration minutes me nikalna hai. Sirf ended mobile/tablet sessions lene hain jo 30+ minutes chale hon. Kaise query likhoge?"*
+* **Aapka Professional Jawab:**
+  > *"Sir, hum `TIMESTAMPDIFF(MINUTE, login_time, logout_time)` use karenge jo clean integer duration dega. SQL execution order ke mutabik `WHERE` clause me formula repeat karenge (`TIMESTAMPDIFF(...) >= 30`), aur `ORDER BY duration_minutes DESC, session_id ASC` sort karenge."*
+
+### 🧠 Deep Concept (Jo dimag me clear hona chahiye):
+* **SQL Query Execution Order:** $\text{FROM} \longrightarrow \text{WHERE} \longrightarrow \text{GROUP BY} \longrightarrow \text{HAVING} \longrightarrow \text{SELECT} \longrightarrow \text{ORDER BY}$. `WHERE` clause `SELECT` se pehle run hota hai, isliye column alias `WHERE` me exist nahi karta.
+* **`TIMESTAMPDIFF` vs `TIMEDIFF`:** `TIMEDIFF` time-string format ('01:15:00') deta hai jo 838 hours par limit hota hai, jabki `TIMESTAMPDIFF` unbounded scalar integer deta hai jo mathematical comparisons ke liye safe hota hai.
+
+### 🚨 Common Interview Traps (Counter-Questions & IT Answers):
+* **Trap 1: Alias in WHERE clause:**
+  * *Interviewer:* *"WHERE duration_minutes >= 30 kyu fail ho jata hai?"*
+  * *Aapka Jawab:* *"Sir, kyunki logical query execution sequence me WHERE clause SELECT se pehle evaluate hota hai, isliye SELECT me defined alias WHERE phase par unavailable hota hai."*
+* **Trap 2: Ongoing Active Sessions:**
+  * *Interviewer:* *"Agar session Active ho aur logout_time NULL ho, toh real-time duration kaise nikaloge?"*
+  * *Aapka Jawab:* *"Sir, fallback ke liye `COALESCE(logout_time, NOW())` wrap karenge: `TIMESTAMPDIFF(MINUTE, login_time, COALESCE(logout_time, NOW()))`."*
+
+---
+
+## 📌 Q032: Month-End Closing & Grace Period Due Date (`LAST_DAY`, `DATE_ADD`)
+
+### 💡 Production SQL:
+```sql
+SELECT 
+    statement_id, 
+    account_id, 
+    billing_date, 
+    LAST_DAY(billing_date) AS cycle_closing_date, 
+    DATE_ADD(LAST_DAY(billing_date), INTERVAL 15 DAY) AS payment_due_date, 
+    billed_amount 
+FROM credit_billing_statements 
+WHERE account_status = 'Active' 
+  AND billed_amount >= 5000.00 
+ORDER BY cycle_closing_date DESC, statement_id ASC;
+```
+
+### 🏢 Business Scenario (Interviewer kaise puchega & Aapko kya bolna hai):
+* **Interviewer:** *"Credit card banking operations me har billing statement ka cycle-closing date mahine ka aakhri din hota hai aur customer ko closing date se 15 din ka payment grace period milta hai. Leap years (Feb 29) aur calendar variations ko handle karte hue dates kaise derive karoge?"*
+* **Aapka Professional Jawab:**
+  > *"Sir, hum `LAST_DAY(billing_date)` se billing cycle ka accurate last day nikalenge, aur grace period ke liye `DATE_ADD(LAST_DAY(billing_date), INTERVAL 15 DAY)` use karenge. Isse 28, 29, 30 aur 31-day months me bina kisi drift ke exact due date compute hoti hai."*
+
+### 🧠 Deep Concept (Jo dimag me clear hona chahiye):
+* **Leap Year Calendar Precision:** Manual 30-day addition calendar drift create karta hai. `LAST_DAY()` function engine ke astronomical rules ke mutabik automatically leap years (Feb 29) handle karta hai.
+* **Cross-Dialect Equivalents:**
+  * **SQL Server:** `EOMONTH(billing_date)`
+  * **PostgreSQL:** `(DATE_TRUNC('month', billing_date) + INTERVAL '1 month - 1 day')::DATE`
+  * **Snowflake / BigQuery:** `LAST_DAY(billing_date)`
+
+### 🚨 Common Interview Traps (Counter-Questions & IT Answers):
+* **Trap 1: Manual 30-day addition trap:**
+  * *Interviewer:* *"Manual 30 din add karne se kya problem aati hai?"*
+  * *Aapka Jawab:* *"Sir, February me 30 din add karne par date March me jump kar jayegi, aur January me add karne par 31 January miss ho jayegi. Financial audit me calendar integrity strictly `LAST_DAY()` se hi banti hai."*
+* **Trap 2: Weekend & Holiday Roll-Forward:**
+  * *Interviewer:* *"Agar 15th due date Sunday par pade toh banking system me kya hota hai?"*
+  * *Aapka Jawab:* *"Sir, banking settlement rules ke mutabik agar due date weekend par hoti hai toh payment date next working day (Monday) par roll hoti hai, jise enterprise banking pipelines me holiday calendar table se join karke resolve karte hain."*
+
+---
+
+## 📌 Q033: Palindrome & Data Symmetry Detection (`REVERSE`, `LOWER`)
+
+### 💡 Production SQL:
+```sql
+SELECT 
+    query_id, 
+    search_keyword, 
+    search_category, 
+    search_count 
+FROM search_query_logs 
+WHERE LOWER(search_keyword) = REVERSE(LOWER(search_keyword)) 
+  AND search_count >= 100 
+ORDER BY search_count DESC, query_id ASC;
+```
+
+### 🏢 Business Scenario (Interviewer kaise puchega & Aapko kya bolna hai):
+* **Interviewer:** *"Search logs me un high-volume search queries ko detect karna hai jo symmetrical / palindromes hain (jo aage aur peeche se same padhi jati hain, jaise Racecar, Kayak). Casing difference ko handle karte hue clean query kaise likhoge?"*
+* **Aapka Professional Jawab:**
+  > *"Sir, hum `LOWER(search_keyword) = REVERSE(LOWER(search_keyword))` predicate use karenge taaki TitleCase words ('Racecar') lowercase hokar mirror equality test pass karein. Saath me volume filter `search_count >= 100` aur `ORDER BY search_count DESC, query_id ASC` apply karenge."*
+
+### 🧠 Deep Concept (Jo dimag me clear hona chahiye):
+* **Collation Independence:** PostgreSql ya binary collations me case-sensitive matching hoti hai jahan 'Racecar' <> 'racecaR' hota hai. Dono side `LOWER()` wrap karna cross-database safety ke liye mandatory hai.
+* **Phrase Palindromes:** Agar multi-word phrases hon ('Taco cat'), toh spaces strip karna padta hai: `REPLACE(LOWER(col), ' ', '') = REVERSE(REPLACE(LOWER(col), ' ', ''))`.
+
+### 🚨 Common Interview Traps (Counter-Questions & IT Answers):
+* **Trap 1: B-Tree Index SARGability:**
+  * *Interviewer:* *"Kya is predicate par normal index use hoga?"*
+  * *Aapka Jawab:* *"Nahi sir, column par function wrap hone se query non-SARGable ho jati hai aur Full Table Scan hota hai. Production me hum Functional Index ya Generated Virtual Column banate hain."*
+* **Trap 2: Single-character keywords:**
+  * *Interviewer:* *"Kya single letter 'A' palindrome consider hoga?"*
+  * *Aapka Jawab:* *"Haan sir, mathematically single character symmetric hota hai. Agar business requirement non-trivial words ki ho, toh `AND LENGTH(search_keyword) > 1` constraint add kiya jata hai."*
+
+---
+
+## 📌 Q034: Phone Number Regex Standardization (`REGEXP_REPLACE`, `RIGHT`)
+
+### 💡 Production SQL:
+```sql
+SELECT 
+    lead_id, 
+    lead_name, 
+    RIGHT(REGEXP_REPLACE(raw_phone, '[^0-9]', ''), 10) AS clean_phone_10digit, 
+    lead_status, 
+    lead_score 
+FROM lead_contacts 
+WHERE lead_status = 'Qualified' 
+  AND lead_score >= 50 
+  AND LENGTH(REGEXP_REPLACE(raw_phone, '[^0-9]', '')) >= 10 
+ORDER BY lead_score DESC, lead_id ASC;
+```
+
+### 🏢 Business Scenario (Interviewer kaise puchega & Aapko kya bolna hai):
+* **Interviewer:** *"CRM lead forms me phone numbers dirty formats (+91 (987) 654-3210, 09876-543-210) me aate hain. SMS gateway broadcast ke liye strictly standardized 10-digit mobile number kaise extract karoge?"*
+* **Aapka Professional Jawab:**
+  > *"Sir, pehle `REGEXP_REPLACE(raw_phone, '[^0-9]', '')` use karke sabhi non-digit characters strip karenge, fir `RIGHT(..., 10)` se clean 10-digit subscriber number extract karenge. Dirty text entries ('N/A') ko eliminate karne ke liye `LENGTH(...) >= 10` check lagayenge."*
+
+### 🧠 Deep Concept (Jo dimag me clear hona chahiye):
+* **Negated Character Class `[^0-9]`:** Yeh pattern 0 se 9 tak ke digits ke alawa har symbol (brackets, spaces, `+`, `-`, letters) ko match karke replace karta hai.
+* **Dialect Differences:**
+  * **MySQL 8.0+ / PostgreSQL / Snowflake:** Direct `REGEXP_REPLACE` support karte hain.
+  * **SQL Server:** Native regex support nahi hota; wahan `TRANSLATE` / `REPLACE` ya CLR use hota hai.
+
+### 🚨 Common Interview Traps (Counter-Questions & IT Answers):
+* **Trap 1: Indian TRAI Mobile Prefix Check:**
+  * *Interviewer:* *"Agar 10-digit number '0' ya '1' se start ho raha ho toh kaise filter karoge?"*
+  * *Aapka Jawab:* *"Sir, TRAI guidelines ke mutabik mobile numbers 6, 7, 8, ya 9 se shuru hote hain. Isliye hum `RIGHT(...) REGEXP '^[6-9][0-9]{9}$'` condition append karte hain."*
+* **Trap 2: ETL Staging Performance:**
+  * *Interviewer:* *"Million rows par `REGEXP_REPLACE` ka performance impact kya hoga?"*
+  * *Aapka Jawab:* *"Sir, Regex CPU-heavy state machine evaluate karta hai. Production me ise Bronze to Silver ETL ingestion layer me ek baar execute karke clean column me store aur index kiya jata hai."*
+
+---
+
+## 📌 Q035: Business Working Days SLA Calculation (`DATEDIFF`, `FLOOR`)
+
+### 💡 Production SQL:
+```sql
+SELECT 
+    ticket_id, 
+    client_id, 
+    created_date, 
+    resolved_date, 
+    DATEDIFF(resolved_date, created_date) AS calendar_days, 
+    DATEDIFF(resolved_date, created_date) - (FLOOR(DATEDIFF(resolved_date, created_date) / 7) * 2) AS business_working_days, 
+    ticket_priority 
+FROM b2b_support_tickets 
+WHERE resolution_status = 'Closed' 
+  AND ticket_priority IN ('Critical', 'High') 
+  AND DATEDIFF(resolved_date, created_date) - (FLOOR(DATEDIFF(resolved_date, created_date) / 7) * 2) >= 3 
+ORDER BY business_working_days DESC, ticket_id ASC;
+```
+
+### 🏢 Business Scenario (Interviewer kaise puchega & Aapko kya bolna hai):
+* **Interviewer:** *"Enterprise support desk me SLA turnaround time calculate karte waqt Saturdays aur Sundays (Weekends) deduct karne hain. Total calendar days me se business working days nikaalne ki query kaise likhoge?"*
+* **Aapka Professional Jawab:**
+  > *"Sir, hum `DATEDIFF(resolved_date, created_date)` se total calendar days nikalenge aur har completed 7-day week ke liye 2 weekend days subtract karenge: `calendar_days - (FLOOR(calendar_days / 7) * 2)`. SQL logical processing order ke mutabik `WHERE` me formula repeat karke `>= 3` business days filter karenge."*
+
+### 🧠 Deep Concept (Jo dimag me clear hona chahiye):
+* **Mathematical Weekend Deduction:** $\text{Business Days} = \text{Calendar Days} - (\lfloor \frac{\text{Calendar Days}}{7} \rfloor \times 2)$. Yeh full-week multiples par weekends ko subtract kar deta hai.
+* **Enterprise DimDate Pattern:** Short partial-week intervals (e.g. Friday to Monday) aur National Bank Holidays ko handle karne ke liye enterprise pipelines me `dim_calendar` master table se join kiya jata hai jahan `is_weekend = FALSE AND is_holiday = FALSE` filter hota hai.
+* **BI Native Function:** Power BI me DAX ka built-in `NETWORKDAYS(start_date, end_date, holidays)` standard hota hai.
+
+### 🚨 Common Interview Traps (Counter-Questions & IT Answers):
+* **Trap 1: The Friday-to-Monday Edge Case:**
+  * *Interviewer:** *"Agar ticket Friday ko create ho aur Monday ko close ho (3 calendar days), toh FLOOR(3/7)*2 = 0 aayega aur result 3 days dikhayega jabki working day 1 tha. Isko kaise defend karoge?"*
+  * *Aapka Jawab:* *"Sir, pure math heuristics multi-week spans me accurate rehti hain. Partial-week aur bank holidays ke exact accounting ke liye enterprise data warehouses me `dim_calendar` dimension table join standard practice hai jahan exact day flags evaluate hote hain."*
+* **Trap 2: Covered Indexing:**
+  * *Interviewer:** *"Is query ko optimize karne ke liye best index kya hoga?"*
+  * *Aapka Jawab:* *"Sir, composite covering index `(resolution_status, ticket_priority, created_date, resolved_date)` best hoga, jisse index seek se filter bhi ho jayega aur date math ke liye table heap access nahi karni padegi."*
+
+---
+
+## 📌 Q036: Customer Lifetime Spend & Order Count (`GROUP BY`, `HAVING`)
+
+### 💡 Production SQL:
+```sql
+SELECT 
+    customer_id, 
+    customer_name, 
+    COUNT(order_id) AS total_orders, 
+    SUM(order_amount) AS total_spent 
+FROM customer_orders 
+WHERE order_status = 'Delivered' 
+GROUP BY customer_id, customer_name 
+HAVING COUNT(order_id) >= 2 
+   AND SUM(order_amount) >= 2000.00 
+ORDER BY total_spent DESC, customer_id ASC;
+```
+
+### 🏢 Business Scenario (Interviewer kaise puchega & Aapko kya bolna hai):
+* **Interviewer:** *"E-Commerce loyalty analysis me un VIP customers ko identify karna hai jinhone kam se kam 2 delivered orders place kiye hon aur jinka total delivered spend ₹2,000 ya usse zyada ho. Cancelled orders ko exclude karte hue query kaise likhoge?"*
+* **Aapka Professional Jawab:**
+  > *"Sir, pehle `WHERE order_status = 'Delivered'` se cancelled orders row-level par filter karenge taaki grouping par memory overhead kam ho. Fir `GROUP BY customer_id, customer_name` karke aggregate-level filter `HAVING COUNT(order_id) >= 2 AND SUM(order_amount) >= 2000.00` lagayenge, aur `total_spent DESC, customer_id ASC` sort karenge."*
+
+### 🧠 Deep Concept (Jo dimag me clear hona chahiye):
+* **`WHERE` vs `HAVING` Distinction:**
+  * `WHERE`: Grouping se *pehle* individual rows par chalta hai. Isme aggregate functions (`SUM`, `COUNT`) allowed nahi hote.
+  * `HAVING`: `GROUP BY` ke *baad* aggregated summaries par filter lagata hai.
+* **SQL Query Execution Order:** $\text{FROM} \longrightarrow \mathbf{WHERE} \longrightarrow \mathbf{GROUP\ BY} \longrightarrow \mathbf{HAVING} \longrightarrow \mathbf{SELECT} \longrightarrow \mathbf{ORDER\ BY}$.
+* **ANSI SQL Alias Rule:** PostgreSQL aur SQL Server me `HAVING` ke andar column aliases invalid hote hain kyunki `HAVING` `SELECT` se pehle run hota hai. Isliye `HAVING COUNT(order_id) >= 2` likhna standard best practice hai.
+
+### 🚨 Common Interview Traps (Counter-Questions & IT Answers):
+* **Trap 1: `WHERE` me aggregate lagana:**
+  * *Interviewer:** *"Kya `WHERE SUM(order_amount) >= 2000` likh sakte hain?"*
+  * *Aapka Jawab:* *"Nahi sir, SQL parser error phekega: 'Invalid use of group function'. Aggregate functions row-level execution phase par exist nahi karte, isliye aggregated filtering strictly `HAVING` me hoti hai."*
+* **Trap 2: `HAVING` me column alias use karna:**
+  * *Interviewer:** *"Kya `HAVING total_spent >= 2000` likhna portable hai?"*
+  * *Aapka Jawab:* *"Sir, MySQL me chal jata hai, lekin PostgreSQL aur SQL Server me query crash ho jayegi kyunki HAVING phase par SELECT aliases project nahi hote. Production SQL me hamesha direct aggregate expression repeat karni chahiye."*
+
+---
+
+## 📌 Q037: Category Diversity & Distinct Counting (`COUNT(DISTINCT)`, `SUM`)
+
+### 💡 Production SQL:
+```sql
+SELECT 
+    customer_id, 
+    COUNT(item_id) AS total_items_purchased, 
+    COUNT(DISTINCT product_category) AS distinct_categories_shopped, 
+    SUM(quantity * item_price) AS total_spend 
+FROM order_line_items 
+GROUP BY customer_id 
+HAVING COUNT(DISTINCT product_category) >= 2 
+   AND SUM(quantity * item_price) >= 1500.00 
+ORDER BY distinct_categories_shopped DESC, total_spend DESC, customer_id ASC;
+```
+
+### 🏢 Business Scenario (Interviewer kaise puchega & Aapko kya bolna hai):
+* **Interviewer:** *"Retail loyalty analysis me un cross-category shoppers ko nikalna hai jinhone kam se kam 2 alag-alag unique categories se shopping ki ho aur unka total spend ₹1,500 ya usse zyada ho. Category count aur overall spend kaise aggregate karoge?"*
+* **Aapka Professional Jawab:**
+  > *"Sir, hum `COUNT(DISTINCT product_category)` se unique categories compute karenge, aur total spend ke liye row-level multiplication aggregate `SUM(quantity * item_price)` use karenge. `GROUP BY customer_id` karke `HAVING COUNT(DISTINCT ...) >= 2 AND SUM(...) >= 1500.00` se filter karenge, aur multi-level sorting `distinct_categories_shopped DESC, total_spend DESC, customer_id ASC` lagayenge."*
+
+### 🧠 Deep Concept (Jo dimag me clear hona chahiye):
+* **`COUNT(*)` vs `COUNT(col)` vs `COUNT(DISTINCT col)`:**
+  * `COUNT(*)`: NULL samet har row count karta hai.
+  * `COUNT(col)`: Sirf non-null values count karta hai (duplicates counted).
+  * `COUNT(DISTINCT col)`: Sirf unique non-null values count karta hai.
+* **NULL Discard Rule:** `COUNT(DISTINCT col)` NULLs ko ignore karta hai. 1 non-null + 1 NULL ka distinct count 1 aata hai, 2 nahi.
+
+### 🚨 Common Interview Traps (Counter-Questions & IT Answers):
+* **Trap 1: HAVING me Alias vs ANSI Standard:**
+  * *Interviewer:** *"HAVING distinct_categories_shopped >= 2 likhna safe hai kya?"*
+  * *Aapka Jawab:* *"Nahi sir, yeh sirf MySQL me chalta hai. PostgreSQL aur SQL Server me HAVING phase par SELECT aliases available nahi hote. Production SQL me hamesha direct `HAVING COUNT(DISTINCT product_category) >= 2` likhna chahiye."*
+* **Trap 2: Big Data Cardinality Performance:**
+  * *Interviewer:** *"100 Million rows par COUNT(DISTINCT) ka performance bottleneck kaise solve karoge?"*
+  * *Aapka Jawab:* *"Sir, cloud data warehouses (BigQuery / Snowflake) me exact count ke bajaye HyperLogLog algorithm par based `APPROX_COUNT_DISTINCT()` use karte hain jo minimum memory me super-fast estimate deta hai."*
+
+---
+
+## 📌 Q038: Aggregate Average & The NULL Trap (`AVG`, `COALESCE`)
+
+### 💡 Production SQL:
+```sql
+SELECT 
+    department_name, 
+    COUNT(emp_id) AS total_employees, 
+    ROUND(AVG(base_salary), 2) AS avg_base_salary, 
+    ROUND(AVG(COALESCE(bonus_amount, 0)), 2) AS avg_department_bonus 
+FROM employee_salaries 
+WHERE employment_type = 'Full-Time' 
+GROUP BY department_name 
+HAVING COUNT(emp_id) >= 2 
+ORDER BY avg_department_bonus DESC, department_name ASC;
+```
+
+### 🏢 Business Scenario (Interviewer kaise puchega & Aapko kya bolna hai):
+* **Interviewer:** *"HR compensation analysis me un departments ka average bonus nikalna hai jinme kam se kam 2 full-time employees hon. Jin employees ko bonus nahi mila unka bonus NULL hai. Agar seedha `AVG(bonus_amount)` lagayein toh kya problem aayegi aur correct query kaise likhoge?"*
+* **Aapka Professional Jawab:**
+  > *"Sir, standard `AVG(col)` NULL values ko denominator se ignore kar deta hai, jisse average artificially inflate ho jata hai. Business rule ke mutabik unrecipients ko ₹0 maanna hai, isliye hum `ROUND(AVG(COALESCE(bonus_amount, 0)), 2)` use karenge. Row-level filter `WHERE employment_type = 'Full-Time'` aur group filter `HAVING COUNT(emp_id) >= 2` lagakar `avg_department_bonus DESC, department_name ASC` sort karenge."*
+
+### 🧠 Deep Concept (Jo dimag me clear hona chahiye):
+* **`AVG(col)` vs `SUM(col)/COUNT(*)`:**
+  * $\text{AVG}(col) = \frac{\sum NonNull}{\text{COUNT}(col)}$ (NULL ignore karta hai).
+  * $\text{AVG}(\text{COALESCE}(col, 0)) = \frac{\sum NonNull}{\text{COUNT}(*)}$ (NULL ko 0 maankar denominator me count karta hai).
+* **Corporate Metric Integrity:** Bonus, discount, ya penalty metrics me zero-imputation lagana mandatory hota hai taaki unallocated populations ke sath average distort na ho.
+
+### 🚨 Common Interview Traps (Counter-Questions & IT Answers):
+* **Trap 1: The Inflation Risk:**
+  * *Interviewer:** *"Agar COALESCE miss ho jaye toh business impact kya aayega?"*
+  * *Aapka Jawab:* *"Sir, reporting team executive leadership ko galat metric present kar degi ki department ka payout bohot zyada hai, jabki 50% logon ko bonus mila hi nahi tha!"*
+* **Trap 2: `IFNULL` vs `COALESCE`:**
+  * *Interviewer:** *"Kya IFNULL use karna production me sahi hai?"*
+  * *Aapka Jawab:* *"Sir, IFNULL sirf MySQL me chalta hai. PostgreSQL aur Snowflake me crash ho jayega. COALESCE ANSI SQL standard hai jo cross-dialect portable hota hai."*
+
+---
+
+## 📌 Q039: Multi-Column Grouping & Store Performance (`GROUP BY col1, col2`)
+
+### 💡 Production SQL:
+```sql
+SELECT 
+    store_city, 
+    product_category, 
+    COUNT(transaction_id) AS total_transactions, 
+    ROUND(SUM(sales_amount), 2) AS total_revenue, 
+    ROUND(AVG(sales_amount), 2) AS avg_ticket_size 
+FROM store_sales_transactions 
+WHERE payment_method IN ('UPI', 'Card', 'Cash') 
+GROUP BY store_city, product_category 
+HAVING COUNT(transaction_id) >= 2 
+   AND SUM(sales_amount) >= 5000.00 
+ORDER BY total_revenue DESC, store_city ASC, product_category ASC;
+```
+
+### 🏢 Business Scenario (Interviewer kaise puchega & Aapko kya bolna hai):
+* **Interviewer:** *"Retail supermarket operations me city aur category ke multi-dimensional clusters ki sales performance nikalni hai. Sirf valid payments lene hain aur kam se kam 2 transactions aur ₹5,000 revenue hona chahiye. Query kaise structure karoge?"*
+* **Aapka Professional Jawab:**
+  > *"Sir, hum `payment_method IN ('UPI', 'Card', 'Cash')` filter grouping se pehle `WHERE` clause me apply karenge. Multi-column grouping ke liye `GROUP BY store_city, product_category` karenge aur aggregates nikalenge. `HAVING COUNT(transaction_id) >= 2 AND SUM(sales_amount) >= 5000.00` se threshold filter karenge aur `ORDER BY total_revenue DESC, store_city ASC, product_category ASC` sort karenge."*
+
+### 🧠 Deep Concept (Jo dimag me clear hona chahiye):
+* **Composite Grouping Key:** `GROUP BY store_city, product_category` dono columns ke distinct combinations par groups banata hai.
+* **`ONLY_FULL_GROUP_BY` Rule:** `SELECT` clause me har non-aggregated column ka `GROUP BY` me hona mandatory hai. Unaggregated column (jaise `payment_method`) ko `SELECT` me bina group ke include karne par Error 1055 aata hai.
+
+### 🚨 Common Interview Traps (Counter-Questions & IT Answers):
+* **Trap 1: Column Order in `GROUP BY`:**
+  * *Interviewer:** *"Kya `GROUP BY store_city, product_category` aur `GROUP BY product_category, store_city` me koi difference hota hai?"*
+  * *Aapka Jawab:* *"Nahi sir, mathematical groups aur summary numbers (SUM, AVG) 100% identical hote hain. Bas agar explicit `ORDER BY` na ho toh internal sorting sequence thoda differ kar sakta hai."*
+* **Trap 2: `HAVING` vs `WHERE` on non-aggregated columns:**
+  * *Interviewer:** *"Kya payment_method filter ko HAVING me daal sakte hain?"*
+  * *Aapka Jawab:* *"Nahi sir, kyunki payment_method na toh GROUP BY me hai aur na aggregate ke andar, isliye HAVING me lagane par error aayega. Row-level filters ko hamesha WHERE me hi lagana best practice hai."*
+
+---
+
+## 📌 Q040: Conditional Aggregation & Pivoting (`SUM(CASE WHEN ...)`)
+
+### 💡 Production SQL:
+```sql
+SELECT 
+    branch_name, 
+    COUNT(loan_id) AS total_open_loans, 
+    SUM(CASE WHEN loan_status = 'Current' THEN loan_amount ELSE 0 END) AS active_current_amount, 
+    SUM(CASE WHEN loan_status = 'Delinquent' THEN loan_amount ELSE 0 END) AS delinquent_amount 
+FROM loan_portfolio 
+WHERE loan_status IN ('Current', 'Delinquent') 
+GROUP BY branch_name 
+HAVING SUM(CASE WHEN loan_status = 'Delinquent' THEN loan_amount ELSE 0 END) > 0 
+ORDER BY delinquent_amount DESC, branch_name ASC;
+```
+
+### 🏢 Business Scenario (Interviewer kaise puchega & Aapko kya bolna hai):
+* **Interviewer:** *"Banking loan portfolio risk audit me har branch ke total open loans, performing loans ka amount, aur delinquent/default loans ka amount ek hi row me pivot karke nikalna hai. Closed loans ko drop karte hue delinquent branches kaise filter karoge?"*
+* **Aapka Professional Jawab:**
+  > *"Sir, hum conditional aggregation `SUM(CASE WHEN loan_status = '...' THEN loan_amount ELSE 0 END)` use karenge jo row values ko distinct metric columns me pivot kar deta hai. `WHERE loan_status IN ('Current', 'Delinquent')` se closed loans filter karenge taaki headcount aur memory optimize ho, aur `HAVING SUM(CASE WHEN ... 'Delinquent' ...) > 0` lagakar sirf risk branches display karenge."*
+
+### 🧠 Deep Concept (Jo dimag me clear hona chahiye):
+* **Manual Pivoting:** `SUM(CASE WHEN ...)` har SQL dialect (MySQL, Postgres, BigQuery, Snowflake) me universal cross-tabulation provide karta hai bina proprietary `PIVOT` operator ke.
+* **The `COUNT(CASE ... ELSE 0)` Trap:** `COUNT` non-null values count karta hai. `ELSE 0` dene par `0` bhi count ho jata hai jo galat answer deta hai. Conditional counting ke liye `SUM(CASE ... THEN 1 ELSE 0 END)` ya `COUNT(CASE ... THEN 1 END)` use karna chahiye.
+
+### 🚨 Common Interview Traps (Counter-Questions & IT Answers):
+* **Trap 1: Modern PostgreSQL `FILTER` Clause:**
+  * *Interviewer:** *"PostgreSQL me iska modern alternative kya hai?"*
+  * *Aapka Jawab:** *"Sir, PostgreSQL me `SUM(loan_amount) FILTER (WHERE loan_status = 'Delinquent')` syntax use hota hai jo zyada clean aur ANSI standard hai."*
+* **Trap 2: Closed loans filtering placement:**
+  * *Interviewer:** *"Closed loans ko WHERE me filter karna kyu zaroori hai agar CASE WHEN already filter kar raha hai?"*
+  * *Aapka Jawab:** *"Sir, do reasons hain: pehla, `COUNT(loan_id)` me closed loans na count ho jayein. Doosra, grouping se pehle unwanted rows eliminate karne se query memory aur execution speed optimize hoti hai."*
+
+---
+
+## 📌 Q041: Min/Max Boundary Aggregation & Price Spread (`MIN`, `MAX`)
+
+### 💡 Production SQL:
+```sql
+SELECT 
+    category_name, 
+    COUNT(product_id) AS total_products, 
+    MIN(unit_price) AS min_price, 
+    MAX(unit_price) AS max_price, 
+    ROUND(MAX(unit_price) - MIN(unit_price), 2) AS price_spread 
+FROM product_catalog 
+WHERE is_active = 1 
+  AND stock_quantity > 0 
+GROUP BY category_name 
+HAVING COUNT(product_id) >= 2 
+   AND (MAX(unit_price) - MIN(unit_price)) >= 1000.00 
+ORDER BY price_spread DESC, category_name ASC;
+```
+
+### 🏢 Business Scenario (Interviewer kaise puchega & Aapko kya bolna hai):
+* **Interviewer:** *"E-Commerce pricing analysis me har category ka price volatility spread (`MAX - MIN`) nikalna hai. Out-of-stock items ko drop karte hue un categories ko kaise filter karoge jinme kam se kam 2 in-stock items hon aur price spread ₹1,000 ya zyada ho?"*
+* **Aapka Professional Jawab:**
+  > *"Sir, pehle `WHERE is_active = 1 AND stock_quantity > 0` se out-of-stock rows filter karenge taaki min/max values distort na hon. Fir `GROUP BY category_name` karke aggregate difference `ROUND(MAX(unit_price) - MIN(unit_price), 2)` compute karenge. `HAVING COUNT(product_id) >= 2 AND (MAX - MIN) >= 1000.00` lagakar filter karenge aur `price_spread DESC, category_name ASC` sort karenge."*
+
+### 🧠 Deep Concept (Jo dimag me clear hona chahiye):
+* **Aggregate Arithmetic:** SQL `MAX() - MIN()` jaise expressions ko grouping scan ke dauran memory registers me calculate karta hai.
+* **NULL Behavior:** `MIN()` aur `MAX()` NULL values ko ignore karte hain. Yeh sirf tab NULL return karte hain agar poore group me saari rows NULL hon.
+* **Extrema on Dates/Strings:** Dates par `MIN` oldest date aur `MAX` latest date deta hai; Strings par alphabetical extrema deta hai.
+
+### 🚨 Common Interview Traps (Counter-Questions & IT Answers):
+* **Trap 1: The Product Name With Min/Max Dilemma:**
+  * *Interviewer:** *"Kya hum minimum price ke sath us product ka `product_name` directly SELECT me add kar sakte hain?"*
+  * *Aapka Jawab:** *"Nahi sir! Yeh ONLY_FULL_GROUP_BY violation hoga. Min/Max price ke sath exact item name laane ke liye Window Function (`ROW_NUMBER() OVER (...)`) ya Subquery join use kiya jata hai."*
+* **Trap 2: Inventory Filter Placement:**
+  * *Interviewer:** *"Stock filter ko WHERE me lagana kyu zaroori hai?"*
+  * *Aapka Jawab:** *"Sir, agar out-of-stock items filter na karein toh unka cheap price category ke `MIN()` ko falsely skew kar dega jabki wo product khareedne ke liye available hi nahi hai."*
+
+---
+
+## 📌 Q042: Call Center Agent Productivity & AHT SLA (`AVG`, `HAVING`)
+
+### 💡 Production SQL:
+```sql
+SELECT 
+    agent_id, 
+    agent_name, 
+    COUNT(call_id) AS total_handled_calls, 
+    ROUND(AVG(call_duration_seconds), 2) AS avg_handling_time_sec, 
+    ROUND(AVG(customer_rating), 2) AS avg_csat_score 
+FROM support_call_logs 
+WHERE call_status = 'Completed' 
+GROUP BY agent_id, agent_name 
+HAVING COUNT(call_id) >= 3 
+   AND AVG(call_duration_seconds) <= 300.00 
+   AND AVG(customer_rating) >= 4.00 
+ORDER BY avg_csat_score DESC, avg_handling_time_sec ASC, agent_id ASC;
+```
+
+### 🏢 Business Scenario (Interviewer kaise puchega & Aapko kya bolna hai):
+* **Interviewer:** *"Call center operations audit me un support agents ko nikalna hai jinhone kam se kam 3 completed calls li hon, jinka Average Handling Time (AHT) 300 seconds ya kam ho, aur CSAT rating 4.0 ya zyada ho. Multi-metric aggregate filter kaise likhoge?"*
+* **Aapka Professional Jawab:**
+  > *"Sir, pehle `WHERE call_status = 'Completed'` se dropped/abandoned calls drop karenge taaki AHT artificially distort na ho. `GROUP BY agent_id, agent_name` karke compound `HAVING` clause me teeno conditions combine karenge: `COUNT(call_id) >= 3 AND AVG(duration) <= 300.00 AND AVG(rating) >= 4.00`. Sort order me 3-tier tie-breaking `avg_csat_score DESC, avg_handling_time_sec ASC, agent_id ASC` lagayenge."*
+
+### 🧠 Deep Concept (Jo dimag me clear hona chahiye):
+* **Compound HAVING Logic:** `HAVING` me multiple independent aggregate functions (`COUNT`, `AVG`, `SUM`) ko `AND`/`OR` ke sath ek hi evaluation pass me filter kiya ja sakta hai.
+* **SQL Server (T-SQL) Integer Division:** SQL Server me `AVG(int_col)` integer quotient deta hai (decimals truncate ho jate hain). Wahan strictly `AVG(call_duration_seconds * 1.0)` likhna mandatory hota hai.
+
+### 🚨 Common Interview Traps (Counter-Questions & IT Answers):
+* **Trap 1: Abandoned calls filtering in HAVING vs WHERE:**
+  * *Interviewer:** *"Abandoned calls ko HAVING me filter kyu nahi kiya?"*
+  * *Aapka Jawab:** *"Sir, row-level filters ko WHERE me lagana chahiye taaki grouping se pehle hi unneeded rows prune ho jayein aur B-Tree index seek use ho sake. Grouping ke baad filter karne se database memory aur CPU waste hota hai."*
+* **Trap 2: Missing CSAT Rating NULL Behavior:**
+  * *Interviewer:** *"Agar customer ne rating na di ho (NULL), toh AVG() kya karega?"*
+  * *Aapka Jawab:** *"Sir, AVG() NULLs ko ignore karega. Agar business policy unrated calls ko 0 rating maanti hai, toh `AVG(COALESCE(customer_rating, 0))` use karna padega."*
+
+---
+
+## 📌 Q043: Hierarchical Subtotals & Grand Totals (`WITH ROLLUP`, `GROUPING`)
+
+### 💡 Production SQL:
+```sql
+SELECT 
+    COALESCE(region, 'Grand Total') AS region, 
+    COALESCE(product_category, 'All Categories') AS product_category, 
+    SUM(revenue) AS total_revenue 
+FROM regional_sales 
+WHERE sale_status = 'Completed' 
+GROUP BY region, product_category WITH ROLLUP;
+```
+
+### 🏢 Business Scenario (Interviewer kaise puchega & Aapko kya bolna hai):
+* **Interviewer:** *"Financial FP&A quarterly report me CFO ko pivot table jaisa structure chahiye jisme Region aur Category wise sales ke sath-sath har region ka Subtotal aur aakhri me poori company ka Grand Total display ho. Single-pass high performance query kaise likhoge?"*
+* **Aapka Professional Jawab:**
+  > *"Sir, multiple `UNION ALL` scans likhne ke badle hum SQL ka native `GROUP BY region, product_category WITH ROLLUP` use karenge jo single table scan me cascading subtotals generate karta hai. Generated NULLs ko clean reporting labels dene ke liye `COALESCE(region, 'Grand Total')` aur `COALESCE(product_category, 'All Categories')` lagayenge."*
+
+### 🧠 Deep Concept (Jo dimag me clear hona chahiye):
+* **Single-Pass Aggregation:** $N$ columns par ROLLUP lagane se $N + 1$ levels of aggregation ek hi table scan me calculate ho jati hain.
+* **The `GROUPING()` Function:** Agar table me pehle se real NULL data ho, toh `COALESCE` unhe bhi subtotal bana dega. `GROUPING(col)` check karta hai: agar return `1` ho toh wo ROLLUP ka subtotal hai, agar `0` ho toh wo original row data hai.
+
+### 🚨 Common Interview Traps (Counter-Questions & IT Answers):
+* **Trap 1: `WITH ROLLUP` vs `UNION ALL`:**
+  * *Interviewer:** *"UNION ALL kyu avoid karna chahiye?"*
+  * *Aapka Jawab:* *"Sir, 3 levels ke liye UNION ALL database ko 3 alag-alag baar poori table scan karwayega ($3\times$ I/O). WITH ROLLUP memory accumulator use karke single pass me answer emit karta hai jo 3x-5x faster hota hai."*
+* **Trap 2: Dialect Syntax Variations:**
+  * *Interviewer:** *"PostgreSQL ya Snowflake me ROLLUP syntax kaise likhte hain?"*
+  * *Aapka Jawab:* *"Sir, MySQL me `GROUP BY col1, col2 WITH ROLLUP` likhte hain, jabki PostgreSQL aur Snowflake me ANSI format `GROUP BY ROLLUP(col1, col2)` use hota hai."*
+
+---
+
+## 📌 Q044: Concatenating Group Values into Delimited Strings (`GROUP_CONCAT`, `STRING_AGG`)
+
+### 💡 Production SQL:
+```sql
+SELECT 
+    developer_id, 
+    developer_name, 
+    COUNT(DISTINCT skill_name) AS verified_skills_count, 
+    GROUP_CONCAT(DISTINCT skill_name ORDER BY skill_name ASC SEPARATOR ', ') AS skill_set 
+FROM developer_skills 
+WHERE is_verified = 1 
+GROUP BY developer_id, developer_name 
+HAVING COUNT(DISTINCT skill_name) >= 3 
+ORDER BY verified_skills_count DESC, developer_name ASC;
+```
+
+### 🏢 Business Scenario (Interviewer kaise puchega & Aapko kya bolna hai):
+* **Interviewer:** *"Recruitment dashboard me candidates ke verified skills row-by-row table se single-row profile me display karne hain. Har developer ke distinct skills ko alphabetically sorted comma-separated string me collapse kaise karoge?"*
+* **Aapka Professional Jawab:**
+  > *"Sir, hum `GROUP_CONCAT(DISTINCT skill_name ORDER BY skill_name ASC SEPARATOR ', ')` use karenge. `WHERE is_verified = 1` se verified skills filter karenge, `GROUP BY developer_id, developer_name` karke `HAVING COUNT(DISTINCT skill_name) >= 3` lagayenge, aur `ORDER BY verified_skills_count DESC, developer_name ASC` sort karenge."*
+
+### 🧠 Deep Concept (Jo dimag me clear hona chahiye):
+* **Components of String Aggregation:** `DISTINCT` duplicates drop karta hai, `ORDER BY` list ko alphabetically sort karta hai, aur `SEPARATOR` default comma ko custom delimiter (jaise `', '`) se replace karta hai.
+* **The `group_concat_max_len` Buffer Trap:** MySQL me default buffer sirf 1024 bytes ka hota hai. Badi strings silently truncate ho jati hain. Production me `SET SESSION group_concat_max_len = 1000000;` badhana padta hai.
+* **Cross-Dialect Equivalents:**
+  * **PostgreSQL:** `STRING_AGG(DISTINCT col, ', ' ORDER BY col ASC)`
+  * **SQL Server:** `STRING_AGG(col, ', ') WITHIN GROUP (ORDER BY col ASC)`
+  * **Snowflake / Oracle:** `LISTAGG(DISTINCT col, ', ') WITHIN GROUP (ORDER BY col ASC)`
+
+### 🚨 Common Interview Traps (Counter-Questions & IT Answers):
+* **Trap 1: NULL Values in GROUP_CONCAT:**
+  * *Interviewer:** *"Agar skill_name NULL ho toh kya string me extra comma ya NULL judega?"*
+  * *Aapka Jawab:** *"Nahi sir, aggregate functions ki tarah GROUP_CONCAT NULLs ko automatically drop kar deta hai bina koi extra delimiter add kiye."*
+* **Trap 2: `HAVING` me string matching:**
+  * *Interviewer:** *"Python skill check karne ke liye kya `HAVING skill_set LIKE '%Python%'` likhna sahi hai?"*
+  * *Aapka Jawab:** *"Nahi sir, aggregated string par LIKE search CPU-heavy hota hai. Direct `SUM(CASE WHEN skill_name = 'Python' THEN 1 ELSE 0 END) > 0` lagana much faster aur reliable hota hai."*
+
+---
+
+## 📌 Q045: Ratio of Aggregates & Conversion Rates (`SUM / COUNT * 100.0`)
+
+### 💡 Production SQL:
+```sql
+SELECT 
+    campaign_id, 
+    campaign_name, 
+    COUNT(click_id) AS total_clicks, 
+    SUM(is_purchased) AS total_conversions, 
+    ROUND(SUM(is_purchased) * 100.0 / COUNT(click_id), 2) AS conversion_rate_pct 
+FROM ad_campaign_clicks 
+WHERE device_type IN ('Mobile', 'Desktop') 
+GROUP BY campaign_id, campaign_name 
+HAVING COUNT(click_id) >= 5 
+   AND (SUM(is_purchased) * 100.0 / COUNT(click_id)) >= 25.00 
+ORDER BY conversion_rate_pct DESC, total_clicks DESC, campaign_id ASC;
+```
+
+### 🏢 Business Scenario (Interviewer kaise puchega & Aapko kya bolna hai):
+* **Interviewer:** *"Marketing ad-tech analytics me campaign conversion rate (CVR%) nikalna hai. Integer division truncate hone se bachate hue un campaigns ko kaise filter karoge jinka conversion rate 25% ya zyada ho aur total clicks kam se kam 5 hon?"*
+* **Aapka Professional Jawab:**
+  > *"Sir, integer division hazard (PostgreSQL / SQL Server) ko prevent karne ke liye hum numerator me `100.0` se multiply karenge: `ROUND(SUM(is_purchased) * 100.0 / COUNT(click_id), 2)`. Row filter `WHERE device_type IN ('Mobile', 'Desktop')` apply karke `GROUP BY campaign_id, campaign_name` karenge aur compound `HAVING COUNT(...) >= 5 AND (SUM(...) * 100.0 / COUNT(...)) >= 25.00` lagakar filter karenge."*
+
+### 🧠 Deep Concept (Jo dimag me clear hona chahiye):
+* **Integer Division Hazard:** SQL Server aur PostgreSQL me `4 / 5 = 0` evaluate hota hai. Numerator me `100.0` use karne se poora expression `NUMERIC/FLOAT` ban jata hai aur accurate decimals aate hain.
+* **The Binary 0/1 Flag Shortcut:** Agar column binary `0/1` ho, toh `ROUND(AVG(is_purchased) * 100.0, 2)` mathematically identical hota hai aur query ko short banata hai.
+* **Zero-Division Safeguard:** Denominator me `NULLIF(COUNT(click_id), 0)` lagane se division-by-zero runtime error avoid hota hai.
+
+### 🚨 Common Interview Traps (Counter-Questions & IT Answers):
+* **Trap 1: `(SUM/COUNT) * 100` vs `SUM * 100.0 / COUNT`:**
+  * *Interviewer:** *"Brackets laga kar `(SUM / COUNT) * 100` likha toh kya hoga?"*
+  * *Aapka Jawab:* *"Sir, PostgreSQL me pehle bracket evaluate hoga jo `0` dega aur 0 * 100 = 0.00% ban jayega! Numerator me pehle `100.0` multiply karna zaroori hai."*
+* **Trap 2: HAVING me alias usage:**
+  * *Interviewer:** *"HAVING conversion_rate_pct >= 25.00 likhna valid kyu nahi hai?"*
+  * *Aapka Jawab:* *"Sir, ANSI SQL processing pipeline me HAVING clause SELECT se pehle evaluate hota hai, isliye SELECT me banaye gaye aliases HAVING phase par unavailable hote hain."*
+
+---
+
+## 📌 Q046: Multiple Conditional Counts & Funnel Drop-off (`COUNT(DISTINCT CASE ...)`)
+
+### 💡 Production SQL:
+```sql
+SELECT 
+    acquisition_channel, 
+    COUNT(DISTINCT user_id) AS total_users, 
+    COUNT(DISTINCT CASE WHEN event_stage = 'Completed_Profile' THEN user_id END) AS profile_completed_users, 
+    COUNT(DISTINCT CASE WHEN event_stage = 'Created_First_Project' THEN user_id END) AS project_created_users, 
+    COUNT(DISTINCT CASE WHEN event_stage = 'Upgraded_To_Paid' THEN user_id END) AS paid_converted_users 
+FROM user_onboarding_events 
+GROUP BY acquisition_channel 
+HAVING COUNT(DISTINCT user_id) >= 3 
+   AND COUNT(DISTINCT CASE WHEN event_stage = 'Upgraded_To_Paid' THEN user_id END) >= 1 
+ORDER BY paid_converted_users DESC, total_users DESC, acquisition_channel ASC;
+```
+
+### 🏢 Business Scenario (Interviewer kaise puchega & Aapko kya bolna hai):
+* **Interviewer:** *"SaaS onboarding analytics me user journey funnels (Signup -> Profile -> Project -> Paid) track karne hain. Agar ek user ne multiple profile events trigger kiye hon, toh event inflation se bachate hue unique user conversion kaise compute karoge?"*
+* **Aapka Professional Jawab:**
+  > *"Sir, hum `COUNT(DISTINCT CASE WHEN event_stage = '...' THEN user_id END)` use karenge. Yeh ensure karta hai ki repeated events deduplicate ho jayein aur strictly 1 unique user count ho. `GROUP BY acquisition_channel` karke `HAVING COUNT(DISTINCT user_id) >= 3 AND COUNT(DISTINCT CASE ... 'Upgraded_To_Paid' ...) >= 1` se filter karenge aur `ORDER BY paid_converted_users DESC, total_users DESC, acquisition_channel ASC` sort karenge."*
+
+### 🧠 Deep Concept (Jo dimag me clear hona chahiye):
+* **User-Level Funnel vs Event Telemetry:** `SUM(CASE ... THEN 1 ELSE 0 END)` event frequency count karta hai jo user funnel ko inflate kar deta hai. Unique user conversion ke liye hamesha `COUNT(DISTINCT CASE ... THEN user_id END)` standard hota hai.
+* **Missing ELSE Behavior:** `CASE WHEN` me `ELSE` omit karne se non-matching rows `NULL` emit karti hain, jise outer `COUNT()` automatically discard kar deta hai.
+
+### 🚨 Common Interview Traps (Counter-Questions & IT Answers):
+* **Trap 1: SUM on Alphanumeric ID:**
+  * *Interviewer:** *"Kya alphanumeric user_id par SUM lagaya ja sakta hai?"*
+  * *Aapka Jawab:** *"Nahi sir, string par SUM lagane se PostgreSQL query crash kar dega aur MySQL 0 me cast kar dega. ID counting ke liye strictly COUNT use hota hai."*
+* **Trap 2: Case Sensitivity in Event Stages:**
+  * *Interviewer:** *"Event stage strings me casing mismatch hone par kya impact aata hai?"*
+  * *Aapka Jawab:** *"Sir, case-sensitive collations me 'upgraded_to_paid' match nahi hoga aur silently 0 conversions emit karega bina koi error phenke."*
+
+---
+*(Curriculum continues with Q047 to Q065...)*

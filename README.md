@@ -5,7 +5,7 @@
 
 ![SQL Challenge](https://img.shields.io/badge/SQL-200_Questions_Challenge-blue.svg?style=for-the-badge&logo=postgresql)
 ![Role](https://img.shields.io/badge/Target_Role-Data_Analyst_%280--2_Years%29-orange.svg?style=for-the-badge)
-![Progress](https://img.shields.io/badge/Progress-29%2F200_%2815%25%29-brightgreen.svg?style=for-the-badge)
+![Progress](https://img.shields.io/badge/Progress-46%2F200_%2823%25%29-brightgreen.svg?style=for-the-badge)
 ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)
 
 <p align="center">
@@ -31,19 +31,19 @@ This repository documents **200 real-world, high-frequency interview questions**
 
 ---
 
-## 🗂️ Curriculum & Progress Tracker (29 / 200)
+## 🗂️ Curriculum & Progress Tracker (46 / 200)
 
 | Block | Topic / Category | Target | Completed | Progress |
 |---|---|:---:|:---:|:---|
 | **01** | **Foundations & Data Filtering** (`WHERE`, `LIKE`, `IN`, `BETWEEN`, `NULL`, `ORDER BY`, `LIMIT`, Math) | 15 | 15 | `[██████████] 100%` |
-| **02** | **String & Date Cleaning** (`CONCAT`, `UPPER`/`LOWER`, `SUBSTRING`, `DATEDIFF`, `DATEADD`) | 20 | 14 | `[███████░░░] 70%` |
-| **03** | **Aggregations & Grouping** (`COUNT`, `SUM`, `AVG`, `GROUP BY`, `HAVING`, NULL traps) | 30 | 0 | `[░░░░░░░░░░] 0%` |
+| **02** | **String & Date Cleaning** (`CONCAT`, `UPPER`/`LOWER`, `SUBSTRING`, `DATEDIFF`, `DATEADD`) | 20 | 20 | `[██████████] 100%` |
+| **03** | **Aggregations & Grouping** (`COUNT`, `SUM`, `AVG`, `GROUP BY`, `HAVING`, NULL traps) | 30 | 11 | `[████░░░░░░] 37%` |
 | **04** | **Conditional Business Logic** (`CASE WHEN`, Bucketing, Conditional Aggregation) | 20 | 0 | `[░░░░░░░░░░] 0%` |
 | **05** | **Multi-Table Joins (2 & 3 Tables)** (`INNER`, `LEFT` for unmatched records, 3-Table chains, `SELF JOIN`) | 50 | 0 | `[░░░░░░░░░░] 0%` |
 | **06** | **Subqueries & CTEs** (Scalar/Correlated Subqueries, `WITH` clause modular pipelines) | 25 | 0 | `[░░░░░░░░░░] 0%` |
 | **07** | **Window Functions & Ranking** (`ROW_NUMBER`, `RANK`, `DENSE_RANK`, `LAG`/`LEAD`, Running Totals)| 25 | 0 | `[░░░░░░░░░░] 0%` |
 | **08** | **Real Company Mock Sets & Case Studies** (Amazon, TCS, Accenture, FinTech case scenarios) | 15 | 0 | `[░░░░░░░░░░] 0%` |
-| **TOTAL** | **8 High-Impact Blocks** | **200** | **29** | **29 / 200 (15%)** |
+| **TOTAL** | **8 High-Impact Blocks** | **200** | **46** | **46 / 200 (23%)** |
 
 ---
 
@@ -80,7 +80,24 @@ This repository documents **200 real-world, high-frequency interview questions**
 | **Q027** | Nullifying Sentinel Dummy Values | Data Cleaning (`NULLIF`, `CASE WHEN`) | IoT, Telemetry, Weather | [Q027 Solution ↗️](02_String_and_Date_Cleaning/Q027_nullifying_sentinel_dummy_values.md) |
 | **Q028** | Date Truncation & Cohort Normalization | Temporal Aggregation (`DATE_FORMAT`, `DATE_SUB`) | Netflix, Spotify, SaaS | [Q028 Solution ↗️](02_String_and_Date_Cleaning/Q028_date_truncation_cohort_normalization.md) |
 | **Q029** | Credit Card & PII Data Masking | String Masking (`REPEAT`, `RIGHT`, `CONCAT`) | FinTech, Banking, PCI-DSS | [Q029 Solution ↗️](02_String_and_Date_Cleaning/Q029_credit_card_pii_masking.md) |
-| **Q030** | URL Top-Level Domain (TLD) Extraction | String Parsing (`SUBSTRING_INDEX`, `RIGHT`) | Marketing, SEO, Web Analytics | *In Progress* |
+| **Q030** | URL Top-Level Domain (TLD) Extraction | String Parsing (`SUBSTRING_INDEX`, `RIGHT`) | Marketing, SEO, Web Analytics | [Q030 Solution ↗️](02_String_and_Date_Cleaning/Q030_url_domain_parsing_substring_index.md) |
+| **Q031** | Session Duration & Idle Timeout Inactivity | Time Calculation (`TIMESTAMPDIFF`, `TIMEDIFF`) | Gaming, SaaS, Security Audit | [Q031 Solution ↗️](02_String_and_Date_Cleaning/Q031_session_duration_timestampdiff.md) |
+| **Q032** | Month-End Closing & Billing Cycle Anchor | Date Functions (`LAST_DAY`, `DATE_ADD`) | FinTech, Credit Card Billing | [Q032 Solution ↗️](02_String_and_Date_Cleaning/Q032_month_end_closing_last_day.md) |
+| **Q033** | Palindrome & Data Symmetry Detection | String Manipulation (`REVERSE`, `LOWER`, `REPLACE`) | Data Integrity, Search Engines | [Q033 Solution ↗️](02_String_and_Date_Cleaning/Q033_palindrome_symmetry_detection_reverse.md) |
+| **Q034** | Phone Number Regex Standardization | Regular Expressions (`REGEXP_REPLACE`, `RIGHT`) | Telemarketing, CRM, OTP | [Q034 Solution ↗️](02_String_and_Date_Cleaning/Q034_phone_number_regex_replace.md) |
+| **Q035** | Business Working Days SLA Calculation | Date Filtering & Weekend Exclusion (`DATEDIFF`, `WEEKDAY`) | B2B Logistics, Banking SLAs | [Q035 Solution ↗️](02_String_and_Date_Cleaning/Q035_business_working_days_sla_deduction.md) |
+| **Q036** | Total Orders & Revenue by Customer | Aggregate Functions (`COUNT`, `SUM`, `ROUND`) | E-Commerce, Retail Analytics | [Q036 Solution ↗️](03_Aggregations_and_Grouping/Q036_customer_lifetime_spend_having.md) |
+| **Q037** | Distinct vs Total Item & Category Diversity | Multi-Aggregates (`COUNT(*)`, `COUNT(DISTINCT)`) | Amazon, Retail Basket Analysis | [Q037 Solution ↗️](03_Aggregations_and_Grouping/Q037_distinct_vs_total_item_diversity.md) |
+| **Q038** | Aggregate Average & The NULL Trap | Aggregations (`AVG`, `COALESCE`, `ROUND`) | HR Payroll, Performance Appraisals | [Q038 Solution ↗️](03_Aggregations_and_Grouping/Q038_aggregate_average_null_trap.md) |
+| **Q039** | Multi-Column Grouping & Store Performance | Multi-Key Aggregations (`GROUP BY col1, col2`) | Retail Chain, Supermarkets | [Q039 Solution ↗️](03_Aggregations_and_Grouping/Q039_multi_column_grouping_store_performance.md) |
+| **Q040** | Conditional Aggregation with CASE WHEN | Grouping & Pivoting (`SUM(CASE WHEN ...)`) | Banking, Loan Risk & Delinquency | [Q040 Solution ↗️](03_Aggregations_and_Grouping/Q040_conditional_aggregation_case_when.md) |
+| **Q041** | Min/Max Boundary Aggregation & Price Spread | Extreme Value Aggregations (`MIN`, `MAX`) | E-Commerce, Price Optimization | [Q041 Solution ↗️](03_Aggregations_and_Grouping/Q041_min_max_boundary_price_spread.md) |
+| **Q042** | Filter Groups with Sub-Aggregate Thresholds | Group Aggregation (`AVG`, `HAVING AVG() > ...`) | Call Center, Agent Productivity | [Q042 Solution ↗️](03_Aggregations_and_Grouping/Q042_agent_productivity_aht_csat_having.md) |
+| **Q043** | Multi-Tier Subtotals & Aggregations with ROLLUP | Hierarchical Aggregations (`WITH ROLLUP`, `GROUPING`) | Financial Audit, Sales Summaries | [Q043 Solution ↗️](03_Aggregations_and_Grouping/Q043_hierarchical_subtotals_rollup.md) |
+| **Q044** | Concatenating Group Values into Delimited Strings | String Aggregation (`GROUP_CONCAT`, `STRING_AGG`) | CRM, Tagging & User Preferences | [Q044 Solution ↗️](03_Aggregations_and_Grouping/Q044_string_aggregation_group_concat.md) |
+| **Q045** | Ratio of Aggregates & Conversion Rates | Aggregate Math (`SUM() / COUNT(*) * 100`) | Marketing, E-Commerce Funnel | [Q045 Solution ↗️](03_Aggregations_and_Grouping/Q045_ratio_of_aggregates_conversion_rate.md) |
+| **Q046** | Multiple Conditional Counts & Funnel Drop-off | Advanced Conditional Aggregation (`COUNT(CASE WHEN ...)`) | SaaS Product Funnel, User Journey | [Q046 Solution ↗️](03_Aggregations_and_Grouping/Q046_funnel_dropoff_conditional_distinct_count.md) |
+| **Q047** | Grouping on Calculated Time Bins | Temporal Aggregations (`HOUR(timestamp)`) | Uber, Food Delivery, Logistics | *In Progress* |
 
 ---
 
